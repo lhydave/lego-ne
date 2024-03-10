@@ -29,7 +29,7 @@ constraints_stmt            ::= "constraints" "=" "[" [constraint_string] {"," c
 return_stmt                 ::= "return" strategy_list;
 
 constraint_string           ::= constraint | quantifiers "(" constraint ")";
-quantifiers                 ::= [quantifiers]  quantifier;
+quantifiers                 ::= {quantifier};
 quantifier                  ::= "forall" "(" (strategy_fparam | payoff_fparam) ").";
 constraint                  ::= exp ("==" | ">=" | "<=") exp;
 exp                         ::= add_exp;
