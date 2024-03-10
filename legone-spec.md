@@ -28,13 +28,14 @@ extra_params_stmt           ::= "extra_params" "=" "[" [PARAM_STRING] {"," PARAM
 constraints_stmt            ::= "constraints" "=" "[" [constraint_string] {"," constraint_string} "]";
 return_stmt                 ::= "return" strategy_list;
 
-constraint_string           ::= "\"" [quantifiers] constraint "\"";
-quantifiers                 ::= quantifiers quantifier;
-quantifier                  ::= "forall " (strategy_fparam | payoff_fparam);
+constraint_string           ::= constraint | quantifiers "(" constraint ")";
+quantifiers                 ::= [quantifiers]  quantifier;
+quantifier                  ::= "forall" "(" (strategy_fparam | payoff_fparam) ").";
 constraint                  ::= exp ("==" | ">=" | "<=") exp;
 exp                         ::= add_exp;
 add_exp                     ::= mul_exp | add_exp ("+" | "-") mul_exp;
-mul_exp                     ::= val | mul_exp "*" val;
+mul_exp                     ::= primary_exp | mul_exp "*" val;
+primary_exp                 ::= val | "(" exp ")";
 val                         ::= number | payoff_val;
 payoff_val                  ::= IDENT "(" strategy_list ")";
 strategy_list               ::= strategy_rparam {"," strategy_rparam};
@@ -161,7 +162,7 @@ def eqmix1(s11: 1, s12: 1) -> 1:
     description = "Compute the equal mixture of s11 and s12 for player 1"
     extra_params = []
     constraints = [
-        "forall U:Payoff forall s2:2 forall s3:3 U(s11, s2, s3) + U(s12, s2, s3) == 2 * U(s, s2, s3)"
+        forall(U:Payoff).forall(s2:2).forall(s3:3).(U(s11, s2, s3) + U(s12, s2, s3) == 2 * U(s, s2, s3))
     ]
     return s: 1
 
