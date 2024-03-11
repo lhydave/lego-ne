@@ -40,7 +40,7 @@ val                         ::= number | payoff_val;
 payoff_val                  ::= IDENT "(" strategy_list ")";
 strategy_list               ::= strategy_rparam {"," strategy_rparam};
 
-algo_def                    ::= "def" "algo" "(" ")" algo_body;
+algo_def                    ::= "def" "algo" "(" "):" algo_body;
 algo_body                   ::= construct_stmt {construct_stmt} [return_stmt];
 construct_stmt              ::= strategy_with_type_list "=" operation_name "(" [operation_rparams] ")";
 strategy_with_type_list     ::= strategy_with_type {"," strategy_with_type};
