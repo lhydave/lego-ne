@@ -154,7 +154,7 @@ def best_response1(U: Payoff, s2: 2, s3: 3) -> 1:
     description = "Compute the best response for player 1 against (s2,s3)"
     extra_params = []
     constraints = [
-        "forall x:1 U(x1, s2, s3) >= U(x, s2, s3)"
+        forall(x:1).(U(x1, s2, s3) >= U(x, s2, s3))
     ]
     return x1: 1
 

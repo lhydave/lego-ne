@@ -1,0 +1,1 @@
+// The symbol table for the compiler
