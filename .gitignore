@@ -1,0 +1,5 @@
+.vscode
+*.tab.cpp
+*.tab.hpp
+lex.yy.cpp
+.DS_Store
