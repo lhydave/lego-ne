@@ -12,21 +12,21 @@ The syntax of LegoNE is defined as follows, with the start symbol being `program
 
 ```ebnf
 program                     ::= n_player_decl operation_defs algo_def;
-n_player_decl               ::= "num_players" "=" number;
+n_player_decl               ::= "num_players" "=" number NEWLINE;
 
 operation_defs              ::= {operation_def};
-operation_def               ::= "def" operation_name "(" [operation_fparams] ")" "->" ret_type ":" operation_body;
-operation_name              ::= IDENT;
+operation_def               ::= "def" operation_name "(" [operation_fparams] ")" "->" ret_type ":" NEWLINE INDENT operation_body DEDENT;
+operation_name              ::= IDENTIFIER;
 operation_fparams           ::= operation_fparam {"," operation_fparam};
 operation_fparam            ::= strategy_fparam | payoff_fparam;
-strategy_fparam             ::= IDENT ":" player_type;
-payoff_fparam               ::= IDENT ":" payoff_type;
+strategy_fparam             ::= IDENTIFIER ":" player_type;
+payoff_fparam               ::= IDENTIFIER ":" payoff_type;
 
 operation_body              ::= description_stmt extra_params_stmt constraints_stmt return_stmt;
-description_stmt            ::= "description" "=" STRING;
-extra_params_stmt           ::= "extra_params" "=" "[" [PARAM_STRING] {"," PARAM_STRING} "]";
-constraints_stmt            ::= "constraints" "=" "[" [constraint_string] {"," constraint_string} "]";
-return_stmt                 ::= "return" strategy_list;
+description_stmt            ::= "description" "=" STRING NEWLINE;
+extra_params_stmt           ::= "extra_params" "=" "[" [PARAM_STRING] {"," PARAM_STRING} "]" NEWLINE;
+constraints_stmt            ::= "constraints" "=" "[" [constraint_string] {"," constraint_string} "]" NEWLINE;
+return_stmt                 ::= "return" strategy_list NEWLINE;
 
 constraint_string           ::= constraint | quantifiers "(" constraint ")";
 quantifiers                 ::= {quantifier};
@@ -37,20 +37,20 @@ add_exp                     ::= mul_exp | add_exp ("+" | "-") mul_exp;
 mul_exp                     ::= primary_exp | mul_exp "*" val;
 primary_exp                 ::= val | "(" exp ")";
 val                         ::= number | payoff_val;
-payoff_val                  ::= IDENT "(" strategy_list ")";
+payoff_val                  ::= IDENTIFIER "(" strategy_list ")";
 strategy_list               ::= strategy_rparam {"," strategy_rparam};
 
-algo_def                    ::= "def" "algo" "(" "):" algo_body;
+algo_def                    ::= "def" "algo" "(" "):" NEWLINE INDENT algo_body DEDENT;
 algo_body                   ::= construct_stmt {construct_stmt} [return_stmt];
-construct_stmt              ::= strategy_with_type_list "=" operation_name "(" [operation_rparams] ")";
+construct_stmt              ::= strategy_with_type_list "=" operation_name "(" [operation_rparams] ")" NEWLINE;
 strategy_with_type_list     ::= strategy_with_type {"," strategy_with_type};
-strategy_with_type          ::= IDENT ":" player_type;
+strategy_with_type          ::= IDENTIFIER ":" player_type;
 operation_rparams           ::= operation_rparam {"," operation_rparam};
 operation_rparam            ::= strategy_rparam | payoff_rparam;
-strategy_rparam             ::= IDENT;
+strategy_rparam             ::= IDENTIFIER;
 payoff_rparam               ::= linear_combination;
-linear_combination          ::= [number "*"] IDENT {("+" | "-") [number "*"] IDENT};
-return_stmt                 ::= "return" strategy_list;
+linear_combination          ::= [number "*"] IDENTIFIER {("+" | "-") [number "*"] IDENTIFIER};
+return_stmt                 ::= "return" strategy_list NEWLINE;
 
 ret_type                    ::= "List" "[" player_type {"," player_type} "]" | player_type;
 player_type                 ::= number;
@@ -70,9 +70,11 @@ Comments are denoted by `#` and continue to the end of the line.
 comment ::= "#" [^"\n"]* "\n";
 ```
 
-### Indents
+### Statements and Indents
 
-To make LegoNE in a python-like style, we use indents to denote the program blocks. The indents are denoted by `INDENT`, and the dedents are denoted by `DEDENT`. They are not explicitly written as tokens in the EBNF grammar, but the compiler should be aware of them. When there is a new line with more indents than the previous line, the compiler should insert an `INDENT` token. When there is a new line with fewer indents than the previous line, the compiler should insert a `DEDENT` token. 
+To make LegoNE in a python-like style, we use line break (`NEWLINE`) to distinguish different statements, and use indents to denote the program blocks. The indents are denoted by `INDENT`, and the dedents are denoted by `DEDENT`. They are not explicitly written as tokens in the EBNF grammar, but the compiler should be aware of them. When there is a new line with more indents than the previous line, the compiler should insert an `INDENT` token. When there is a new line with fewer indents than the previous line, the compiler should insert a `DEDENT` token. 
+
+For the detailed rules of line breaks and indents, please refer to [Section 2.1 of Python language specification](https://docs.python.org/3/reference/lexical_analysis.html#line-structure).
 
 ### Integers
 
@@ -84,10 +86,10 @@ INT ::= [0-9]+;
 
 ### Identifiers
 
-Identifiers are denoted by `IDENT`, which is a sequence of letters, digits, and underscores, starting with a letter, e.g., `x`, `x1`, `x_1`.
+Identifiers are denoted by `IDENTIFIER`, which is a sequence of letters, digits, and underscores, starting with a letter, e.g., `x`, `x1`, `x_1`.
 
 ```ebnf
-IDENT ::= [a-zA-Z_][a-zA-Z0-9_]*;
+IDENTIFIER ::= [a-zA-Z_][a-zA-Z0-9_]*;
 ```
 
 ### Strings
