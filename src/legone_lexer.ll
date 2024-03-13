@@ -105,7 +105,7 @@ whitespace      { loc.step(); }
 yy::parser::symbol_type make_NUMBER(const std::string &s, const yy::parser::location_type& loc)
 {
   errno = 0;
-  long n = strtol (s.c_str(), NULL, 10);
+  long n = strtol(s.c_str(), NULL, 10);
   if (not (INT_MIN <= n and n <= INT_MAX and errno != ERANGE))
     throw yy::parser::syntax_error(loc, "integer is out of range: " + s);
   return yy::parser::make_NUMBER((int) n, loc);
@@ -114,7 +114,7 @@ yy::parser::symbol_type make_NUMBER(const std::string &s, const yy::parser::loca
 yy::parser::symbol_type make_PLAYER_T(const std::string &s, const yy::parser::location_type& loc)
 {
   errno = 0;
-  long n = strtol (s.c_str()+1, NULL, 10);
+  long n = strtol(s.c_str()+1, NULL, 10);
   if (not (1 <= n and n <= INT_MAX and errno != ERANGE))
     throw yy::parser::syntax_error(loc, "player type is out of range: " + s);
   return yy::parser::make_PLAYER_T((int) n, loc);
@@ -127,7 +127,7 @@ void driver::scan_begin()
     yyin = stdin;
   else if (not (yyin = fopen(file.c_str(), "r")))
     {
-      std::cerr << "cannot open " << file << ": " << strerror(errno) << '\n';
+      std::cerr << "cannot open " << file << ": " << strerror(errno) << std::endl;
       exit(EXIT_FAILURE);
     }
 }
