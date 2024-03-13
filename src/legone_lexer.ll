@@ -13,7 +13,7 @@
 
 %{
   // A number symbol corresponding to the value in S.
-  yy::parser::symbol_type make_NUMBER (const std::string &s, const yy::parser::location_type& loc);
+  yy::parser::symbol_type make_NUMBER(const std::string &s, const yy::parser::location_type& loc);
   // the player type symbol corresponding to the value in S.
   yy::parser::symbol_type make_PLAYER_T(const std::string &s, const yy::parser::location_type& loc);
 %}
