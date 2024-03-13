@@ -53,7 +53,7 @@ linear_combination          ::= [number "*"] IDENTIFIER {("+" | "-") [number "*"
 return_stmt                 ::= "return" strategy_list NEWLINE;
 
 ret_type                    ::= "List" "[" player_type {"," player_type} "]" | player_type;
-player_type                 ::= number;
+player_type                 ::= "p" number;
 payoff_type                 ::= "Payoff";
 number                      ::= INT;
 ```
@@ -67,7 +67,7 @@ Now we specify the terminal symbols used in the EBNF grammar:
 Comments are denoted by `#` and continue to the end of the line.
 
 ```ebnf
-comment ::= "#" [^"\n"]* "\n";
+comment ::= "#" .* "\n";
 ```
 
 ### Statements and Indents
@@ -86,7 +86,7 @@ INT ::= [0-9]+;
 
 ### Identifiers
 
-Identifiers are denoted by `IDENTIFIER`, which is a sequence of letters, digits, and underscores, starting with a letter, e.g., `x`, `x1`, `x_1`.
+Identifiers are denoted by `IDENTIFIER`, which is a sequence of letters, digits, and underscores, starting with a letter, e.g., `x`, `x1`, `x_1`. Note that identifiers cannot be in form of `p0`, `p00`, etc., because we use `p` followed by a non-negative integer to denote the player type.
 
 ```ebnf
 IDENTIFIER ::= [a-zA-Z_][a-zA-Z0-9_]*;
@@ -107,6 +107,20 @@ Parameter strings are denoted by `PARAM_STRING`, which is a sequence of characte
 ```ebnf
 PARAM_STRING ::= \"[a-zA-Z_][a-zA-Z0-9_]*\";
 ```
+
+## Types
+
+### Player Types
+
+Player types are denoted by `player_type`, which is a sequence of `p` and a non-negative integer, e.g., `p1`, `p2`, `p3`.
+
+### Payoff Type
+
+Payoff type is denoted by `payoff_type`, which is the string `Payoff`.
+
+### Return Type
+
+Return type is denoted by `ret_type`, which is either a list of player types or a player type. The list of player types is denoted by `List` followed by a list of player types enclosed in square brackets, e.g., `List[p1, p2, p3]`. The player type is denoted by `player_type`.
 
 ## Semantics
 
@@ -152,47 +166,47 @@ The following is an example of a LegoNE program that specifies an approximate NE
 
 num_players = 3
 
-def best_response1(U: Payoff, s2: 2, s3: 3) -> 1:
+def best_response1(U: Payoff, s2: p2, s3: p3) -> p1:
     description = "Compute the best response for player 1 against (s2,s3)"
     extra_params = []
     constraints = [
-        forall(x:1).(U(x1, s2, s3) >= U(x, s2, s3))
+        forall(x:p1).(U(x1, s2, s3) >= U(x, s2, s3))
     ]
-    return x1: 1
+    return x1: p1
 
-def eqmix1(s11: 1, s12: 1) -> 1:
+def eqmix1(s11: p1, s12: p1) -> p1:
     description = "Compute the equal mixture of s11 and s12 for player 1"
     extra_params = []
     constraints = [
-        forall(U:Payoff).forall(s2:2).forall(s3:3).(U(s11, s2, s3) + U(s12, s2, s3) == 2 * U(s, s2, s3))
+        forall(U:Payoff).forall(s2:p2).forall(s3:p3).(U(s11, s2, s3) + U(s12, s2, s3) == 2 * U(s, s2, s3))
     ]
-    return s: 1
+    return s: p1
 
-def random1() -> 1:
+def random1() -> p1:
     description = "Randomly choose a strategy for player 1"
     extra_params = []
     constraints = []
-    return s: 1
+    return s: p1
 
-def random2() -> 2:
+def random2() -> p2:
     description = "Randomly choose a strategy for player 2"
     extra_params = []
     constraints = []
-    return s: 2
+    return s: p2
 
-def random3() -> 3:
+def random3() -> p3:
     description = "Randomly choose a strategy for player 3"
     extra_params = []
     constraints = []
-    return s: 3
+    return s: p3
 
 def algo():
-    s2: 2 = random2()
-    s3: 3 = random3()
-    s11: 1 = best_response1(U1, s2, s3)
-    s12: 1 = random1()
-    s1: 1 = eqmix1(s11, s12)
-    ret1: 1, ret2: 2, ret3: 3 = OptMix(s1,s11,s12,s2,s3) # by default we will add this operation if the return statement is missing
+    s2: p2 = random2()
+    s3: p3 = random3()
+    s11: p1 = best_response1(U1, s2, s3)
+    s12: p1 = random1()
+    s1: p1 = eqmix1(s11, s12)
+    ret1: p1, ret2: p2, ret3: p3 = OptMix(s1,s11,s12,s2,s3) # by default we will add this operation if the return statement is missing
     return ret1, ret2, ret3
 ```
 
