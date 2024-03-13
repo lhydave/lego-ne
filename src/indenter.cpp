@@ -18,6 +18,10 @@ void legone::indenter::increase_bracket_level()
 
 void legone::indenter::decrease_bracket_level()
 {
+	if (bracket_level == 0)
+	{
+		throw std::runtime_error("Too many closing brackets");
+	}
 	bracket_level -= 1;
 }
 
