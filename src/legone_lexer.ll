@@ -75,10 +75,10 @@ whitespace      { loc.step(); }
 "-"             return yy::parser::make_MINUS(loc);
 "+"             return yy::parser::make_PLUS(loc);
 "*"             return yy::parser::make_STAR(loc);
-"("             return yy::parser::make_LPAREN(loc);
-")"             return yy::parser::make_RPAREN(loc);
-"["             return yy::parser::make_LBRACKET(loc);
-"]"             return yy::parser::make_RBRACKET(loc);
+"("             { drv.indenters.increase_bracket_level(); return yy::parser::make_LPAREN(loc); }
+")"             { drv.indenters.decrease_bracket_level(); return yy::parser::make_RPAREN(loc); }
+"["             { drv.indenters.increase_bracket_level(); return yy::parser::make_LBRACKET(loc); }
+"]"             { drv.indenters.decrease_bracket_level(); return yy::parser::make_RBRACKET(loc); }
 ":"             return yy::parser::make_COLON(loc);
 ","             return yy::parser::make_COMMA(loc);
 "=="            return yy::parser::make_EQ(loc);
