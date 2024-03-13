@@ -1,5 +1,5 @@
 .vscode
-*.tab.cpp
-*.tab.hpp
-lex.yy.cpp
+legone_parser.cpp
+legone_parser.hpp
+legone_lexer.cpp
 .DS_Store
