@@ -51,55 +51,56 @@ string          \"([^\\\"]|\\.)*\"
   loc.step();
 %}
 
-comment         { loc.lines(yyleng); loc.step(); }
-empty_line      { loc.lines(yyleng); loc.step(); }
-newline         { loc.lines(yyleng); loc.step();
-                  if(not drv.indenters.in_bracket()) // only when we are not in a bracket
-                  {
-                    return yy::parser::make_NEWLINE(loc);
+{comment}         { loc.lines(yyleng); loc.step(); }
+{empty_line}      { loc.lines(yyleng); loc.step(); }
+{newline}         { loc.lines(yyleng); 
+                    loc.step();
+                    if(not drv.indenters.in_bracket()) // only when we are not in a bracket
+                    {
+                      return yy::parser::make_NEWLINE(loc);
+                    }
                   }
-                }
-indent_at_start { if(not drv.indenters.in_bracket()) // only when we are not in a bracket
-                   {
-                     auto success = drv.indenters.gen_token_stack(yytext);
-                     if (not success)
-                       {
-                         throw yy::parser::syntax_error (loc, "invalid indentation: " + std::string(yytext));
-                       }
-                   }
+{indent_at_start} { if(not drv.indenters.in_bracket()) // only when we are not in a bracket
+                    {
+                      auto success = drv.indenters.gen_token_stack(yytext);
+                      if (not success)
+                        {
+                          throw yy::parser::syntax_error (loc, "invalid indentation: " + std::string(yytext));
+                        }
+                    }
                    // when success, we return a series of INDENT and DEDENT for next calls on yylex().
-                }
-whitespace      { loc.step(); }
+                  }
+{whitespace}      { loc.step(); }
 
-"="             return yy::parser::make_ASSIGN(loc);
-"-"             return yy::parser::make_MINUS(loc);
-"+"             return yy::parser::make_PLUS(loc);
-"*"             return yy::parser::make_STAR(loc);
-"("             { drv.indenters.increase_bracket_level(); return yy::parser::make_LPAREN(loc); }
-")"             { drv.indenters.decrease_bracket_level(); return yy::parser::make_RPAREN(loc); }
-"["             { drv.indenters.increase_bracket_level(); return yy::parser::make_LBRACKET(loc); }
-"]"             { drv.indenters.decrease_bracket_level(); return yy::parser::make_RBRACKET(loc); }
-":"             return yy::parser::make_COLON(loc);
-","             return yy::parser::make_COMMA(loc);
-"=="            return yy::parser::make_EQ(loc);
-"<="            return yy::parser::make_LEQ(loc);
-">="            return yy::parser::make_GEQ(loc);
-"def"           return yy::parser::make_DEF(loc);
-"return"        return yy::parser::make_RETURN(loc);
-"forall"        return yy::parser::make_FORALL(loc);
-"List"          return yy::parser::make_LIST_T(loc);
-"Payoff"        return yy::parser::make_PAYOFF_T(loc);
+"="               return yy::parser::make_ASSIGN(loc);
+"-"               return yy::parser::make_MINUS(loc);
+"+"               return yy::parser::make_PLUS(loc);
+"*"               return yy::parser::make_STAR(loc);
+"("               { drv.indenters.increase_bracket_level(); return yy::parser::make_LPAREN(loc); }
+")"               { drv.indenters.decrease_bracket_level(); return yy::parser::make_RPAREN(loc); }
+"["               { drv.indenters.increase_bracket_level(); return yy::parser::make_LBRACKET(loc); }
+"]"               { drv.indenters.decrease_bracket_level(); return yy::parser::make_RBRACKET(loc); }
+":"               return yy::parser::make_COLON(loc);
+","               return yy::parser::make_COMMA(loc);
+"=="              return yy::parser::make_EQ(loc);
+"<="              return yy::parser::make_LEQ(loc);
+">="              return yy::parser::make_GEQ(loc);
+"def"             return yy::parser::make_DEF(loc);
+"return"          return yy::parser::make_RETURN(loc);
+"forall"          return yy::parser::make_FORALL(loc);
+"List"            return yy::parser::make_LIST_T(loc);
+"Payoff"          return yy::parser::make_PAYOFF_T(loc);
 
-{int}           return make_NUMBER(yytext, loc);
-{player_type}   return make_PLAYER_T(yytext, loc);
-{id}            return yy::parser::make_IDENTIFIER(yytext, loc);
-{string}        return yy::parser::make_STRING(yytext, loc);
+{int}             return make_NUMBER(yytext, loc);
+{player_type}     return make_PLAYER_T(yytext, loc);
+{id}              return yy::parser::make_IDENTIFIER(yytext, loc);
+{string}          return yy::parser::make_STRING(yytext, loc);
 
-.               {
-                  throw yy::parser::syntax_error
-                    (loc, "invalid character: " + std::string(yytext));
-                }
-<<EOF>>         return yy::parser::make_YYEOF(loc);
+.                 {
+                    throw yy::parser::syntax_error
+                      (loc, "invalid character: " + std::string(yytext));
+                  }
+<<EOF>>           return yy::parser::make_YYEOF(loc);
 %%
 
 yy::parser::symbol_type make_NUMBER(const std::string &s, const yy::parser::location_type& loc)
