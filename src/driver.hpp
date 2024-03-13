@@ -2,16 +2,17 @@
 
 #ifndef LEGO_DRIVER_HPP
 #define LEGO_DRIVER_HPP
+#include "indenter.hpp"
 #include "legone_parser.hpp"
 #include "symtab.hpp"
-#include "indenter.hpp"
 #include <map>
 #include <string>
 // Give Flex the prototype of yylex we want ...
 #define YY_DECL yy::parser::symbol_type yylex(driver &drv)
 // ... and declare it for the parser's sake.
 YY_DECL;
-// Conducting the whole scanning and parsing of Calc++.
+
+// Conducting the whole compilation process.
 class driver {
 public:
 	driver();
@@ -25,7 +26,7 @@ public:
 	std::string file;
 	// Whether to generate parser debug traces.
 	bool trace_parsing;
-	
+
 	// Handling the scanner.
 	void scan_begin();
 	void scan_end();
