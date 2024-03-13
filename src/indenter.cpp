@@ -58,7 +58,7 @@ bool legone::indenter::gen_token_stack(const std::string &text)
 	}
 }
 
-size_t legone::indenter::text2indent(const std::string &text)
+size_t legone::indenter::text2indent(const std::string &text) const
 {
 	size_t indent = 0;
 	for (auto c : text)

@@ -19,7 +19,7 @@ private:
 	std::stack<indent_token> token_stack;
 	size_t bracket_level;
 	size_t indent_size;
-	size_t text2indent(const std::string &text);
+	size_t text2indent(const std::string &text) const;
 };
 
 } // namespace legone
