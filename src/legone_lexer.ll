@@ -31,12 +31,12 @@ string          \"([^\\\"]|\\.)*\"
 
 %{
   // Code run each time a pattern is matched.
-  # define YY_USER_ACTION  loc.columns (yyleng);
+  # define YY_USER_ACTION  loc.columns(yyleng);
 %}
 %%
 %{
   // pop out all remaining tokens in indenters
-  if (not drv.indenters.empty ())
+  if (not drv.indenters.empty())
     {
       auto indent_token = drv.indenters.top();
       drv.indenters.pop();
