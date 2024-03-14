@@ -50,6 +50,7 @@
 ;
 %token <int> NUMBER "number"
 %token <std::string> IDENTIFIER "identifier"
+%token <std::string> F_NAME "f"
 %token <std::string> STRING "string"
 %token <int> PLAYER_T "player_type"
 

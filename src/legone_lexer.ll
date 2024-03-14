@@ -27,6 +27,7 @@ whitespace      [ \t\f]+
 newline         \n|\r\n
 empty_line      ^[ \t\f]*(\n|\r\n)
 player_type     p[0-9]+
+f_name          f[0-9]+
 string          \"([^\\\"]|\\.)*\"
 
 %{
@@ -93,6 +94,7 @@ string          \"([^\\\"]|\\.)*\"
 
 {int}             return make_NUMBER(yytext, loc);
 {player_type}     return make_PLAYER_T(yytext, loc);
+{f_name}          return yy::parser::make_F_NAME(yytext, loc);
 {id}              return yy::parser::make_IDENTIFIER(yytext, loc);
 {string}          return yy::parser::make_STRING(yytext, loc);
 

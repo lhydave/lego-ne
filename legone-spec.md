@@ -36,8 +36,10 @@ exp                         ::= add_exp;
 add_exp                     ::= mul_exp | add_exp ("+" | "-") mul_exp;
 mul_exp                     ::= primary_exp | mul_exp "*" val;
 primary_exp                 ::= val | "(" exp ")";
-val                         ::= number | payoff_val;
+val                         ::= number | payoff_val | f_val;
 payoff_val                  ::= IDENTIFIER "(" strategy_list ")";
+f_val                       ::= f_name "(" [strategy_list] ")";
+f_name                      ::= "f" number;
 strategy_list               ::= strategy_rparam {"," strategy_rparam};
 
 algo_def                    ::= "def" "algo" "(" "):" NEWLINE INDENT algo_body DEDENT;
@@ -146,11 +148,13 @@ There are two built-in operations that can be used in the algorithm:
 
 ### Constraint Specification
 
-A constraint is a first-order universal arithmetic formula, which is a string enclosed in double quotes. It is constructed using plus, minus, and multiplication operations, and comparison operations such as `==`, `>=`, and `<=`. The operands of the operations are either numbers or a realized payoff. A realized payoff is the evaluation of a payoff function with a list of strategies. Thus, it should be treated as a function call with a list of strategies as its arguments.
+A constraint is a first-order universal arithmetic formula, which is a string enclosed in double quotes. It is constructed using plus, minus, and multiplication operations, and comparison operations such as `==`, `>=`, and `<=`. The operands of the operations are either numbers, a realized payoff, or an $f$ value. A realized payoff is the evaluation of a payoff function with a list of strategies. An $f$ value is the evaluation of the approximation/incentive/regret function of player `k` with a list of strategies. Thus, they should be treated as a function call with a list of strategies as its arguments.
 
 All bounded variables in the constraints are quantified by `forall` quantifiers. These variables should not appear in the extra parameters or return statements of the operation. 
 
 By default, payoff functions can be used in the constraints without being declared in the formal parameters of the operation. These functions are in the form of `Uk(s1, s2, ..., sn)`, where `Uk` is the payoff function of player `k`, and `s1, s2, ..., sn` are the strategies of the players. The compiler will automatically identify these symbols and handle them properly.
+
+The $f$ values is in the form of `fk(s1, s2, ..., sn)`, where `fk` is the approximation/incentive/regret function of player `k`, and `s1, s2, ..., sn` are the strategies of the players. The compiler will automatically identify these symbols and handle them properly.
 
 ### Algorithm Definition
 
