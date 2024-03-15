@@ -42,7 +42,7 @@ f_val                       ::= f_name "(" [strategy_list] ")";
 f_name                      ::= "f" number;
 strategy_list               ::= strategy_rparam {"," strategy_rparam};
 
-algo_def                    ::= "def" "algo" "(" "):" NEWLINE INDENT algo_body DEDENT;
+algo_def                    ::= "def" "algo" "(" ")" ":" NEWLINE INDENT algo_body DEDENT;
 algo_body                   ::= construct_stmt {construct_stmt} [return_stmt];
 construct_stmt              ::= strategy_with_type_list "=" operation_name "(" [operation_rparams] ")" NEWLINE;
 strategy_with_type_list     ::= strategy_with_type {"," strategy_with_type};
@@ -51,8 +51,9 @@ operation_rparams           ::= operation_rparam {"," operation_rparam};
 operation_rparam            ::= strategy_rparam | payoff_rparam;
 strategy_rparam             ::= IDENTIFIER;
 payoff_rparam               ::= linear_combination;
-linear_combination          ::= [number "*"] IDENTIFIER {("+" | "-") [number "*"] IDENTIFIER};
-return_stmt                 ::= "return" strategy_list NEWLINE;
+linear_combination          ::= linear_combination {("+" | "-") linear_term} | linear_term;
+linear_term                 ::= [number "*"] payoff_name;
+payoff_name                 ::= "U" number;
 
 ret_type                    ::= "List" "[" player_type {"," player_type} "]" | player_type;
 player_type                 ::= "p" number;
@@ -88,7 +89,7 @@ INT ::= [0-9]+;
 
 ### Identifiers
 
-Identifiers are denoted by `IDENTIFIER`, which is a sequence of letters, digits, and underscores, starting with a letter, e.g., `x`, `x1`, `x_1`. Note that identifiers cannot be in form of `p0`, `p00`, etc., because we use `p` followed by a non-negative integer to denote the player type.
+Identifiers are denoted by `IDENTIFIER`, which is a sequence of letters, digits, and underscores, starting with a letter, e.g., `x`, `x1`, `x_1`. Note that identifiers cannot be in form of `p0`, `p1`, etc., because we use `p` followed by a non-negative integer to denote the player type. They cannot be in form of `f0`, `f1`, etc., because we use `f` followed by a non-negative integer to denote the approximation/incentive/regret function of the player.
 
 ```ebnf
 IDENTIFIER ::= [a-zA-Z_][a-zA-Z0-9_]*;
@@ -158,9 +159,29 @@ The $f$ values is in the form of `fk(s1, s2, ..., sn)`, where `fk` is the approx
 
 ### Algorithm Definition
 
-An algorithm definition specifies the main algorithm for the approximate NE. It is composed of a sequence of construction statements, each of which creates a list of strategies by calling an operation. The algorithm will return the list of strategies as the output, which is a valid strategy profile.
+An algorithm definition specifies the main algorithm for the approximate NE. It is composed of a sequence of construction statements, each of which creates a list of strategies by calling an operation. The algorithm will return the list of strategies as the output, which is a valid strategy profile. 
 
-Note that the algorithm can lack the return statement. In this case, the compiler will automatically add the `optimal_mix` operation to the end of the algorithm on all constructed strategies, and return the result.
+Note that the algorithm can lack the return statement. In this case, the compiler will automatically add the `optimal_mix` operation to the end of the algorithm on all constructed strategies, and return the result. It is recommended to not write the return statement in the algorithm, and let the compiler automatically add the `optimal_mix` operation. This is because these operations will generate great overhead in the constraint programming, and the user should be aware of this.
+
+Thus, if you want to use the `optimal_mix` and `argmin` operations, you ought to follow the following rules: Only one of `optimal_mix` and `argmin` operations can be used in the algorithm. Either of them can be only used once, and must be used at the end of the algorithm.
+
+## Keywords
+
+All the keywords in LegoNE are hard keywords, which means they cannot be used as identifiers. The keywords are:
+- `num_players`
+- `def`
+- `algo`
+- `List`
+- `p1`, `p2`, `p3`, ...
+- `Payoff`
+- `f1`, `f2`, `f3`, ...
+- `forall`
+- `description`
+- `extra_params`
+- `constraints`
+- `return`
+- `optimal_mix`
+- `argmin`
 
 ## Example
 
@@ -176,7 +197,7 @@ def best_response1(U: Payoff, s2: p2, s3: p3) -> p1:
     constraints = [
         forall(x:p1).(U(x1, s2, s3) >= U(x, s2, s3))
     ]
-    return x1: p1
+    return x1
 
 def eqmix1(s11: p1, s12: p1) -> p1:
     description = "Compute the equal mixture of s11 and s12 for player 1"
@@ -184,25 +205,25 @@ def eqmix1(s11: p1, s12: p1) -> p1:
     constraints = [
         forall(U:Payoff).forall(s2:p2).forall(s3:p3).(U(s11, s2, s3) + U(s12, s2, s3) == 2 * U(s, s2, s3))
     ]
-    return s: p1
+    return s
 
 def random1() -> p1:
     description = "Randomly choose a strategy for player 1"
     extra_params = []
     constraints = []
-    return s: p1
+    return s
 
 def random2() -> p2:
     description = "Randomly choose a strategy for player 2"
     extra_params = []
     constraints = []
-    return s: p2
+    return s
 
 def random3() -> p3:
     description = "Randomly choose a strategy for player 3"
     extra_params = []
     constraints = []
-    return s: p3
+    return s
 
 def algo():
     s2: p2 = random2()

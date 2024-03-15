@@ -4,7 +4,7 @@
 #define LEGO_DRIVER_HPP
 #include "indenter.hpp"
 #include "legone_parser.hpp"
-#include "symtab.hpp"
+#include "ast.hpp"
 #include <map>
 #include <string>
 // Give Flex the prototype of yylex we want ...
@@ -17,7 +17,8 @@ class driver {
 public:
 	driver();
 
-	std::map<std::string, int> variables;
+	// the ast
+	legone::ast_root legone_ast;
 
 	int result;
 	// Run the parser on file F. and obtain the ast. Return 0 on success.

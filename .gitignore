@@ -2,4 +2,9 @@
 legone_parser.cpp
 legone_parser.hpp
 legone_lexer.cpp
+location.hh
+location.hpp
 .DS_Store
+.VSCodeCounter
+compiler
+*.output
