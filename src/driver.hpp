@@ -2,7 +2,6 @@
 
 #ifndef LEGO_DRIVER_HPP
 #define LEGO_DRIVER_HPP
-#include "indenter.hpp"
 #include "legone_parser.hpp"
 #include "ast.hpp"
 #include <map>
@@ -20,7 +19,6 @@ public:
 	// the ast
 	legone::ast_root legone_ast;
 
-	int result;
 	// Run the parser on file F. and obtain the ast. Return 0 on success.
 	int parse2ast(const std::string &f);
 	// The name of the file being parsed.
@@ -35,8 +33,10 @@ public:
 	bool trace_scanning;
 	// The token's location used by the scanner.
 	yy::location location;
-	// The indenter
-	legone::indenter indenter;
+
+
+	// print the ast
+	bool print_ast;
 }; // class driver
 
 #endif // LEGO_DRIVER_HPP

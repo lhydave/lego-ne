@@ -2,11 +2,19 @@
 
 void legone::ast_root::walk(bool print) const
 {
+	if (print)
+	{
+		std::cout << std::endl << "ast_root begin: " << std::endl;
+	}	
 	for (auto &op : operations)
 	{
 		op.second->walk(print);
 	}
 	algo->walk(print);
+	if (print)
+	{
+		std::cout << "ast_root end" << std::endl;
+	}
 }
 
 legone::num_exp_node::num_exp_node(int val) : val(val)
@@ -227,10 +235,11 @@ legone::construct_stmt_node::construct_stmt_node(
 	rets(std::move(rets)),
 	operation_name(operation_name), rparams(std::move(rparams))
 {
-	if(rets.size() == 0)
-	{
-		throw std::runtime_error("Construct statement must have at least one return value");
-	}
+	// TODO: figure out why this is error
+	// if(rets.size() == 0)
+	// {
+	// 	throw std::runtime_error("Construct statement must have at least one return value");
+	// }
 }
 
 void legone::construct_stmt_node::walk(bool print) const
@@ -427,6 +436,37 @@ void legone::operation_node::walk(bool print) const
 	}
 	if (print)
 	{
-		std::cout << "operation end" << std::endl;
+		std::cout << "operation end" << std::endl << std::endl;
+	}
+}
+
+bool legone::is_f_val(const string &s)
+{
+	std::regex f_val_regex("f[0-9]+");
+	return std::regex_match(s, f_val_regex);
+}
+
+bool legone::is_payoff(const string &s)
+{
+	std::regex payoff_regex("U[0-9]+");
+	return std::regex_match(s, payoff_regex);
+}
+
+legone::param_exp_node::param_exp_node(const string &param_name) : param_name(param_name)
+{
+	type = exp_type::PARAM;
+}
+
+void legone::param_exp_node::display(ostream &os) const
+{
+	auto s = format("\t\t\texp_node: param: {}", param_name);
+	os << s << endl;
+}
+
+void legone::param_exp_node::walk(bool print) const
+{
+	if (print)
+	{
+		display(std::cout);
 	}
 }

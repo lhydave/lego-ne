@@ -8,3 +8,4 @@ location.hpp
 .VSCodeCounter
 compiler
 *.output
+results

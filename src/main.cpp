@@ -3,16 +3,25 @@
 
 int main(int argc, char *argv[])
 {
-	int res = 0;
 	driver drv;
+	string filename;
 	for (int i = 1; i < argc; ++i)
 		if (argv[i] == std::string("-p"))
 			drv.trace_parsing = true;
 		else if (argv[i] == std::string("-s"))
 			drv.trace_scanning = true;
-		else if (!drv.parse2ast(argv[i]))
-			std::cout << drv.result << '\n';
+		else if (argv[i] == std::string("-v"))
+			drv.print_ast = true;
 		else
-			res = 1;
-	return res;
+			filename = argv[i];
+	auto success = drv.parse2ast(filename);
+	if (success != 0)
+	{
+		std::cerr << "Error parsing file " << filename << std::endl;
+	}
+	else if (drv.print_ast)
+	{
+		drv.legone_ast.walk(true);
+	}
+	return 0;
 }

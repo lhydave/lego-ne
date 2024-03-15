@@ -26,12 +26,8 @@ id              [_a-zA-Z][a-zA-Z_0-9]*
 int             [0-9]+
 comment         #.*(\n|\r\n)
 indent_at_start ^[ \t\f]*
-whitespace      [ \t\f]+
-newline         \n|\r\n
-empty_line      ^[ \t\f]*(\n|\r\n)
+whitespace      [ \t\f\n]+
 player_type     p[0-9]+
-f_name          f[0-9]+
-payoff_name     U[0-9]+
 string          \"([^\\\"]|\\.)*\"
 
 %{
@@ -42,50 +38,22 @@ string          \"([^\\\"]|\\.)*\"
 %{
   // A handy shortcut to the location held by the driver.
   yy::location& loc = drv.location;
-  // pop out all remaining tokens in indenters
-  if (not drv.indenter.token_stack.empty())
-    {
-      auto indent_token = drv.indenter.token_stack.top();
-      drv.indenter.token_stack.pop();
-      if (indent_token == legone::indenter::indent_token::INDENT)
-        return yy::parser::make_INDENT(loc);
-      else
-        return yy::parser::make_DEDENT(loc);
-    }
   // Code run each time yylex is called.
   loc.step();
 %}
 
 {comment}         { loc.lines(yyleng); loc.step(); }
-{empty_line}      { loc.lines(yyleng); loc.step(); }
-{newline}         { loc.lines(yyleng); 
-                    loc.step();
-                    if(not drv.indenter.in_bracket()) // only when we are not in a bracket
-                    {
-                      return yy::parser::make_NEWLINE(loc);
-                    }
-                  }
-{indent_at_start} { if(not drv.indenter.in_bracket()) // only when we are not in a bracket
-                    {
-                      auto success = drv.indenter.gen_token_stack(yytext);
-                      if (not success)
-                        {
-                          throw yy::parser::syntax_error (loc, "invalid indentation: " + std::string(yytext));
-                        }
-                    }
-                   // when success, we return a series of INDENT and DEDENT for next calls on yylex().
-                  }
 {whitespace}      { loc.step(); }
 
 "="               return yy::parser::make_ASSIGN(loc);
 "-"               return yy::parser::make_MINUS(loc);
 "+"               return yy::parser::make_PLUS(loc);
 "*"               return yy::parser::make_STAR(loc);
-"("               { drv.indenter.increase_bracket_level(); return yy::parser::make_LPAREN(loc); }
-")."              { drv.indenter.decrease_bracket_level(); return yy::parser::make_RPAREN_DOT(loc); }
-")"               { drv.indenter.decrease_bracket_level(); return yy::parser::make_RPAREN(loc); }
-"["               { drv.indenter.increase_bracket_level(); return yy::parser::make_LBRACKET(loc); }
-"]"               { drv.indenter.decrease_bracket_level(); return yy::parser::make_RBRACKET(loc); }
+"("               { return yy::parser::make_LPAREN(loc); }
+")."              { return yy::parser::make_RPAREN_DOT(loc); }
+")"               { return yy::parser::make_RPAREN(loc); }
+"["               { return yy::parser::make_LBRACKET(loc); }
+"]"               { return yy::parser::make_RBRACKET(loc); }
 ":"               return yy::parser::make_COLON(loc);
 ","               return yy::parser::make_COMMA(loc);
 "=="              return yy::parser::make_EQ(loc);
@@ -105,8 +73,6 @@ string          \"([^\\\"]|\\.)*\"
 
 {int}             return make_NUMBER(yytext, loc);
 {player_type}     return make_PLAYER_T(yytext, loc);
-{f_name}          return yy::parser::make_F_NAME(yytext, loc);
-{payoff_name}     return yy::parser::make_PAYOFF_NAME(yytext, loc);
 {id}              return yy::parser::make_IDENTIFIER(yytext, loc);
 {string}          return make_STRING(yytext, loc);
 
@@ -138,6 +104,7 @@ yy::parser::symbol_type make_PLAYER_T(const std::string &s, const yy::parser::lo
 yy::parser::symbol_type make_STRING(const std::string &s, const yy::parser::location_type& loc)
 {
   std::string str = s.substr(1, s.size()-2);
+  std::cout << "[DEBUG] string: " << str << std::endl;
   return yy::parser::make_STRING(str, loc);
 }
 

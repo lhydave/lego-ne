@@ -3,9 +3,9 @@ YACC 		:= bison
 CC 			:= g++
 CFLAGS 		:= -lm -O2 -Wall -std=c++20 #$(CDEBUG)
 INCLUDEDIR 	:= -Ifront -Iback
-INCLUDE 	:= main.cpp ast.cpp driver.cpp indenter.cpp symtab.cpp
+INCLUDE 	:= main.cpp ast.cpp driver.cpp symtab.cpp
 INCLUDE		+= gen_code/constraint.cpp gen_code/mathematica.cpp
-YACCDEBUG	:= # -v --report=all
+YACCDEBUG	:= -v --report=all
 PARSER_NAME := legone_parser
 LEXER_NAME  := legone_lexer
 all: compiler
@@ -22,3 +22,4 @@ lexer: legone_lexer.ll
 clean:
 	rm -f compiler *.output *.out *.S
 	rm -f $(PARSER_NAME).cpp $(LEXER_NAME).cpp $(PARSER_NAME).hpp location.hh location.hpp
+	rm -f ../results

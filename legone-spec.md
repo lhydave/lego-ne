@@ -77,6 +77,8 @@ comment ::= "#" .* "\n";
 
 To make LegoNE in a python-like style, we use line break (`NEWLINE`) to distinguish different statements, and use indents to denote the program blocks. The indents are denoted by `INDENT`, and the dedents are denoted by `DEDENT`. They are not explicitly written as tokens in the EBNF grammar, but the compiler should be aware of them. When there is a new line with more indents than the previous line, the compiler should insert an `INDENT` token. When there is a new line with fewer indents than the previous line, the compiler should insert a `DEDENT` token. 
 
+However, since LegoNE is so restricted, the compiler will not check the correctness of the indents.
+
 For the detailed rules of line breaks and indents, please refer to [Section 2.1 of Python language specification](https://docs.python.org/3/reference/lexical_analysis.html#line-structure).
 
 ### Integers

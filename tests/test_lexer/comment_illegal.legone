@@ -1,0 +1,46 @@
+num_players = 3
+
+# @ !
+def best_response1(U: Payoff, s2: p2, s3: p3) -> p1:
+    description = "Compute the best response for player 1 against (s2,s3)"
+    extra_params = ["rho"]
+    constraints = [
+        forall(x:p1).(U(x1, s2, s3) >= U(x, s2, s3)),
+        U(x1,s2,s3) >= rho * U(x2,s2,s3)
+    ]
+    return x1
+
+def eqmix1(s11: p1, s12: p1) -> p1:
+    description = "Compute the equal mixture of s11 and s12 for player 1"
+    extra_params = ["a", "b"]
+    constraints = [
+        forall(U:Payoff).forall(s2:p2).forall(s3:p3).(U(s11, s2, s3) + U(s12, s2, s3) == 2 * U(s, s2, s3))
+    ]
+    return s
+
+def random1(x1: p1) -> p1:
+    description = "Randomly choose a strategy for player 1"
+    extra_params = []
+    constraints = []
+    return s
+
+def random2() -> p2:
+    description = "Randomly choose a strategy for player 2"
+    extra_params = []
+    constraints = []
+    return s
+
+def random3() -> p3:
+    description = "Randomly choose a strategy for player 3"
+    extra_params = []
+    constraints = []
+    return s
+
+def algo():
+    s2: p2 = random2()
+    s3: p3 = random3()
+    s11: p1 = best_response1(U1, s2, s3)
+    s12: p1 = random1(s11)
+    s1: p1 = eqmix1(s11, s12)
+    ret1: p1, ret2: p2, ret3: p3 = OptMix(s1,s11,s12,s2,s3) # by default we will add this operation if the return statement is missing
+    return ret1, ret2, ret3

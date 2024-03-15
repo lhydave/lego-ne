@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 #include <format>
+#include <regex>
 
 using std::make_unique;
 using std::ostream;
@@ -128,7 +129,7 @@ public:
 
 class exp_node {
 public:
-	enum class exp_type { NUM, OP, PAYOFF, F_VAL };
+	enum class exp_type { NUM, OP, PAYOFF, F_VAL, PARAM };
 	exp_type type;
 
 	virtual ~exp_node() = default;
@@ -140,7 +141,6 @@ public:
 class num_exp_node : public exp_node {
 public:
 	int val;
-
 	num_exp_node(int val);
 	void display(ostream &os) const override;
 	void walk(bool print = false) const override;
@@ -178,6 +178,19 @@ public:
 	void display(ostream &os) const override;
 	void walk(bool print = false) const override;
 };
+
+class param_exp_node : public exp_node {
+public:
+	string param_name;
+
+	param_exp_node(const string &param_name);
+	void display(ostream &os) const override;
+	void walk(bool print = false) const override;
+};
+
+bool is_f_val(const string &s);
+bool is_payoff(const string &s);
+
 } // namespace legone
 
 #endif

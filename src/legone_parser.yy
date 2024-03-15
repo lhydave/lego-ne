@@ -52,14 +52,9 @@
   CONSTRAINTS  "constraints"
   ALGO         "algo"
   NUM_PLAYERS  "num_players"
-  NEWLINE
-  INDENT
-  DEDENT
 ;
 %token <int> NUMBER "number"
 %token <string> IDENTIFIER "identifier"
-%token <string> F_NAME "f"
-%token <string> PAYOFF_NAME "payoff_name"
 %token <string> STRING "string"
 %token <basic_type> PLAYER_T "player_type"
 
@@ -88,8 +83,7 @@
 %nterm <unique_ptr<exp_node>> add_exp
 %nterm <unique_ptr<exp_node>> mul_exp
 %nterm <unique_ptr<exp_node>> primary_exp
-%nterm <unique_ptr<payoff_exp_node>> payoff_val
-%nterm <unique_ptr<f_val_exp_node>> f_val
+%nterm <unique_ptr<exp_node>> call_val
 %nterm <vector<string>> strategy_list
 
 %nterm <unique_ptr<algo_node>> algo_def
@@ -100,8 +94,6 @@
 %nterm <tuple<string, basic_type>> strategy_with_type
 %nterm <vector<unique_ptr<rparam_node>>> operation_rparams
 %nterm <unique_ptr<rparam_node>> operation_rparam
-%nterm <unique_ptr<strategy_rparam_node>> strategy_rparam
-%nterm <unique_ptr<payoff_exp_rparam_node>> payoff_rparam
 %nterm <vector<tuple<string, int>>> linear_combination
 %nterm <tuple<string, int>> linear_term
 
@@ -119,8 +111,8 @@ program:
     drv.legone_ast.algo = std::move($3);
   } 
 n_player_decl: 
-  "num_players" NUMBER NEWLINE { 
-    $$ = $2; 
+  "num_players" "=" NUMBER  { 
+    $$ = $3; 
   }
 
 operation_defs: 
@@ -136,8 +128,8 @@ operation_defs:
     }
   }
 operation_def:
-  "def" operation_name "(" operation_fparams ")" "->" ret_type ":" NEWLINE INDENT operation_body DEDENT {
-    auto& [extra_params, constraints, rets] = $11;
+  "def" operation_name "(" operation_fparams ")" "->" ret_type ":" operation_body {
+    auto& [extra_params, constraints, rets] = $9;
     $$ = std::make_unique<operation_node>($2, $4, $7, extra_params, std::move(constraints), rets);
   }
 operation_name: 
@@ -148,9 +140,12 @@ operation_fparams:
   %empty { 
     $$ = vector<tuple<string, basic_type>>(); 
   }
-  | operation_fparams operation_fparam { 
-    $$ = std::move($1);
-    $$.push_back($2);
+  | operation_fparam "," operation_fparams { 
+    $$ = std::move($3);
+    $$.insert($$.begin(), $1);
+  }
+  | operation_fparam { 
+    $$ = vector<tuple<string, basic_type>>(1, $1);
   }
 operation_fparam:
   strategy_fparam { 
@@ -167,43 +162,48 @@ payoff_fparam:
   "identifier" ":" "Payoff" { 
     $$ = std::make_tuple($1, basic_type::Payoff); 
   }
-  | "payoff_name" ":" "Payoff" { 
-    $$ = std::make_tuple($1, basic_type::Payoff); 
-  }
 
 operation_body:
   description_stmt extra_params_stmt constraints_stmt return_stmt {
     $$ = std::make_tuple(std::move($2), std::move($3), std::move($4));
   }
 description_stmt:
-  "description" "=" STRING NEWLINE {}
+  "description" "=" STRING  {}
 extra_params_stmt:
-  "extra_params" "=" "[" param_list "]" NEWLINE {
+  "extra_params" "=" "[" param_list "]"  {
     $$ = std::move($4);
   }
 param_list:
   %empty { 
     $$ = unordered_set<string>(); 
   }
-  | param_list "," STRING { 
-    $$ = std::move($1);
-    if($$.find($3) != $$.end()) {
-      yy::parser::error(drv.location, "extra param " + $3 + " already defined");
+  | STRING { 
+    $$ = unordered_set<string>();
+    $$.insert($1);
+  }
+  | STRING "," param_list {
+    $$ = std::move($3);
+    if($$.find($1) != $$.end()) {
+      yy::parser::error(drv.location, "extra param " + $1 + " already defined");
     } else {
-      $$.insert($3);
+      $$.insert($1);
     }
   }
 constraints_stmt:
-  "constraints" "=" "[" constraint_list "]" NEWLINE {
+  "constraints" "=" "[" constraint_list "]"  {
     $$ = std::move($4);
   } 
 constraint_list:
   %empty { 
     $$ = vector<unique_ptr<constraint_node>>(); 
   }
-  | constraint_list "," constraint_string { 
-    $$ = std::move($1);
-    $$.push_back(std::move($3));
+  | constraint_string { 
+    $$ = vector<unique_ptr<constraint_node>>();
+    $$.push_back(std::move($1));
+  }
+  | constraint_string "," constraint_list { 
+    $$ = std::move($3);
+    $$.insert($$.begin(), std::move($1));
   }
 return_stmt:
   "return" strategy_list {
@@ -266,38 +266,42 @@ mul_exp:
     $$ = std::move($1); 
   }
 primary_exp:
-  payoff_val { 
+  call_val { 
     $$ = std::move($1); 
   }
-  | f_val { 
-    $$ = std::move($1); 
+  | "identifier" { 
+    $$ = make_unique<param_exp_node>($1); 
   }
   | NUMBER { 
     $$ = make_unique<num_exp_node>($1); 
   }
-payoff_val:
-  "identifier" "(" strategy_list ")" { 
-    $$ = make_unique<payoff_exp_node>($1, $3); 
-  }
-  | "payoff_name" "(" strategy_list ")" { 
-    $$ = make_unique<payoff_exp_node>($1, $3); 
-  }
-f_val:
-  F_NAME "(" strategy_list ")" { 
-    $$ = make_unique<f_val_exp_node>($1, $3); 
+call_val:
+  "identifier" "(" strategy_list ")" {
+    auto check_f_val = is_f_val($1);
+    if (check_f_val) // is f_val
+    {
+      $$ = make_unique<f_val_exp_node>($1, $3);
+    }
+    else
+    {
+      $$ = make_unique<payoff_exp_node>($1, $3); 
+    } 
   }
 strategy_list:
   %empty { 
     $$ = vector<string>(); 
   }
-  | strategy_list "," strategy_rparam { 
-    $$ = std::move($1);
-    $$.push_back($3->strategy_name);
+  | "identifier" { 
+    $$ = vector<string>(1, $1);
+  }
+  | "identifier" "," strategy_list { 
+    $$ = std::move($3);
+    $$.insert($$.begin(), $1);
   }
 
 algo_def:
-  "def" "algo" "(" ")" ":" NEWLINE INDENT algo_body DEDENT {
-    $$ = std::move($8);
+  "def" "algo" "(" ")" ":" algo_body  {
+    $$ = std::move($6);
   }
 algo_body:
   construct_stmts {
@@ -315,12 +319,12 @@ construct_stmts:
     $$.push_back(std::move($2));
   }
 construct_stmt:
-  strategy_with_type_list "=" operation_name "(" operation_rparams ")" NEWLINE {
-    $$ = make_unique<construct_stmt_node>($1, $3, std::move($5));
+  strategy_with_type_list "=" operation_name "(" operation_rparams ")"  {
+    $$ = make_unique<construct_stmt_node>(std::move($1), std::move($3), std::move($5));
   }
 strategy_with_type_list:
-  %empty { 
-    $$ = vector<tuple<string, basic_type>>(); 
+  strategy_with_type { 
+    $$ = vector<tuple<string, basic_type>>(1, $1);
   }
   | strategy_with_type_list "," strategy_with_type { 
     $$ = std::move($1);
@@ -328,37 +332,30 @@ strategy_with_type_list:
   }
 strategy_with_type:
   "identifier" ":" "player_type" { 
-    if ($3 == basic_type::Payoff)
-    {
-      yy::parser::error(drv.location, "strategy cannot be of type Payoff");
-    }
-    else
-    {
       $$ = std::make_tuple($1, $3);
-    }
   }
 operation_rparams:
   %empty { 
     $$ = vector<unique_ptr<rparam_node>>(); 
   }
-  | operation_rparams "," operation_rparam { 
-    $$ = std::move($1);
-    $$.push_back(std::move($3));
+  | operation_rparam { 
+    $$ = vector<unique_ptr<rparam_node>>();
+    $$.push_back(std::move($1));
+  }
+  | operation_rparam "," operation_rparams { 
+    $$ = std::move($3);
+    $$.insert($$.begin(), std::move($1));
   }
 operation_rparam:
-  strategy_rparam { 
-    $$ = std::move($1);
-  }
-  | payoff_rparam { 
-    $$ = std::move($1);
-  }
-strategy_rparam:
-  "identifier" { 
-    $$ = make_unique<strategy_rparam_node>($1); 
-  }
-payoff_rparam:
   linear_combination { 
-    $$ = std::make_unique<payoff_exp_rparam_node>($1);
+    if($1.size() == 1 and not is_payoff(std::get<0>($1[0]))) // it is a strategy
+    {
+      $$ = make_unique<strategy_rparam_node>(std::get<0>($1[0]));
+    }
+    else
+    {
+      $$ = make_unique<payoff_exp_rparam_node>(std::move($1));
+    }
   }
 linear_combination:
   linear_term { 
@@ -374,11 +371,15 @@ linear_combination:
     $$.push_back(std::make_tuple(std::get<0>($3), -std::get<1>($3)));
   }
 linear_term:
-  "payoff_name" { 
+  "identifier" { 
     $$ = std::make_tuple($1, 1); 
   }
-  | NUMBER "*" "payoff_name" { 
-    $$ = std::make_tuple($3, $1); 
+  | NUMBER "*" "identifier" { 
+    if(not is_payoff($3))
+    {
+      yy::parser::error(drv.location, "strategy cannot be multiplied by a number");
+    }
+    $$ = std::make_tuple($3, $1);
   }
 ret_type:
   "player_type" { 
