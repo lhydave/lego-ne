@@ -1,8 +1,31 @@
 #include "ast.hpp"
 
+void legone::ast_root::walk(bool print) const
+{
+	for (auto &op : operations)
+	{
+		op.second->walk(print);
+	}
+	algo->walk(print);
+}
+
 legone::num_exp_node::num_exp_node(int val) : val(val)
 {
 	type = exp_type::NUM;
+}
+
+void legone::num_exp_node::display(ostream &os) const
+{
+	auto s = format("\t\t\texp_node: number: {}", val);
+	os << s << endl;
+}
+
+void legone::num_exp_node::walk(bool print) const
+{
+	if (print)
+	{
+		display(std::cout);
+	}
 }
 
 legone::op_exp_node::op_exp_node(op_type o_type, unique_ptr<exp_node> left,
@@ -13,6 +36,30 @@ legone::op_exp_node::op_exp_node(op_type o_type, unique_ptr<exp_node> left,
 	type = exp_type::OP;
 }
 
+void legone::op_exp_node::display(ostream &os) const
+{
+	auto op_str = "";
+	switch (o_type)
+	{
+	case op_type::ADD: op_str = "+"; break;
+	case op_type::SUB: op_str = "-"; break;
+	case op_type::MUL: op_str = "*"; break;
+	default: throw std::runtime_error("Invalid op_type");
+	}
+	auto s = format("\t\t\texp_node: op: {}", op_str);
+	os << s << endl;
+}
+
+void legone::op_exp_node::walk(bool print) const
+{
+	if (print)
+	{
+		display(std::cout);
+	}
+	left->walk(print);
+	right->walk(print);
+}
+
 legone::payoff_exp_node::payoff_exp_node(const string &payoff_name,
 	vector<string> strategies) :
 	payoff_name(payoff_name),
@@ -21,7 +68,28 @@ legone::payoff_exp_node::payoff_exp_node(const string &payoff_name,
 	type = exp_type::PAYOFF;
 }
 
-legone::f_val_exp_node::f_val_exp_node(const string& f_name,
+void legone::payoff_exp_node::display(ostream &os) const
+{
+	auto s = format("\t\t\texp_node: payoff: {}(", payoff_name);
+	for (auto &strategy : strategies)
+	{
+		s += strategy + ", ";
+	}
+	s.pop_back();
+	s.pop_back();
+	s += ")";
+	os << s << endl;
+}
+
+void legone::payoff_exp_node::walk(bool print) const
+{
+	if (print)
+	{
+		display(std::cout);
+	}
+}
+
+legone::f_val_exp_node::f_val_exp_node(const string &f_name,
 	vector<string> strategies) :
 	f_name(f_name),
 	strategies(std::move(strategies))
@@ -29,10 +97,56 @@ legone::f_val_exp_node::f_val_exp_node(const string& f_name,
 	type = exp_type::F_VAL;
 }
 
-legone::algo_node::algo_node(
-	vector<unique_ptr<construct_stmt_node>> constructs, vector<string> rets) :
-	constructs(std::move(constructs)), rets(std::move(rets))
+void legone::f_val_exp_node::display(ostream &os) const
 {
+	auto s = format("\t\t\texp_node: f_val: {}(", f_name);
+	for (auto &strategy : strategies)
+	{
+		s += strategy + ", ";
+	}
+	s.pop_back();
+	s.pop_back();
+	s += ")";
+	os << s << endl;
+}
+
+void legone::f_val_exp_node::walk(bool print) const
+{
+	if (print)
+	{
+		display(std::cout);
+	}
+}
+
+legone::algo_node::algo_node(vector<unique_ptr<construct_stmt_node>> constructs,
+	vector<string> rets) :
+	constructs(std::move(constructs)),
+	rets(std::move(rets))
+{
+}
+
+void legone::algo_node::walk(bool print) const
+{
+	if (print)
+	{
+		std::cout << "algo begin: " << std::endl;
+	}
+	for (auto &construct : constructs)
+	{
+		construct->walk(print);
+	}
+	if (print)
+	{
+		if (rets.size() > 0)
+		{
+			std::cout << "algo return: " << rets.at(0);
+			for (auto i = 1; i < rets.size(); i++)
+			{
+				std::cout << ", " << rets.at(i);
+			}
+			std::cout << std::endl << "algo end" << std::endl;
+		}
+	}
 }
 
 legone::constraint_node::constraint_node(
@@ -41,6 +155,57 @@ legone::constraint_node::constraint_node(
 	quantifiers(std::move(quantifiers)),
 	left_exp(std::move(left_exp)), right_exp(std::move(right_exp)), op(op)
 {
+}
+
+void legone::constraint_node::walk(bool print) const
+{
+	if (print)
+	{
+		std::cout << "\tconstraint begin: " << std::endl;
+	}
+	if (print)
+	{
+		if(quantifiers.size() > 0)
+		{
+			std::cout << "\t\tquantifiers: " << std::get<0>(quantifiers.at(0));
+			for (auto i = 1; i < quantifiers.size(); i++)
+			{
+				std::cout << ", " << std::get<0>(quantifiers.at(i));
+			}
+			std::cout << std::endl;
+		}
+		else{
+			std::cout << "\t\tquantifiers: none" << std::endl;
+		}
+		switch (op)
+		{
+		case comp_op::EQ:
+			std::cout << "\t\tcomp_op: ==" << std::endl;
+			break;
+		case comp_op::LEQ:
+			std::cout << "\t\tcomp_op: <=" << std::endl;
+			break;
+		case comp_op::GEQ:
+			std::cout << "\t\tcomp_op: >=" << std::endl;
+			break;
+		default:
+			throw std::runtime_error("Invalid comp_op");
+		}
+	}
+	if(print)
+	{
+		std::cout << "\t\tleft_exp: " << std::endl;
+	}
+	left_exp->walk(print);
+	if(print)
+	{
+		std::cout << "\t\tright_exp: " << std::endl;
+	}
+	right_exp->walk(print);
+	if (print)
+	{
+		std::cout << "\tconstraint end" << std::endl;
+	}
 }
 
 legone::constraint_node::comp_op legone::constraint_node::str2comp_op(
@@ -62,12 +227,64 @@ legone::construct_stmt_node::construct_stmt_node(
 	rets(std::move(rets)),
 	operation_name(operation_name), rparams(std::move(rparams))
 {
+	if(rets.size() == 0)
+	{
+		throw std::runtime_error("Construct statement must have at least one return value");
+	}
+}
+
+void legone::construct_stmt_node::walk(bool print) const
+{
+	if (print)
+	{
+		std::cout << "\tconstruct_stmt begin: " << std::endl;
+		if (rets.size() > 0)
+		{
+			std::cout << "\t\trets: " << std::get<0>(rets.at(0)) << " : "<< static_cast<int>((std::get<1>(rets.at(0))));
+			for (auto i = 1; i < rets.size(); i++)
+			{
+				std::cout << ", " << std::get<0>(rets.at(i)) << " : " << static_cast<int>((std::get<1>(rets.at(i))));
+			}
+			std::cout << std::endl;
+		}
+		else
+		{
+			std::cout << "\t\trets: none" << std::endl;
+		}
+		std::cout << "\t\toperation_name: " << operation_name << std::endl;
+		std::cout << "\t\trparams: ";
+		if(rparams.size() == 0)
+		{
+			std::cout << "none" << std::endl;
+		}
+		else
+		{
+			std::cout << std::endl;
+		}
+	}
+	for(auto &rparam : rparams)
+	{
+		rparam->walk(print);
+	}
 }
 
 legone::strategy_rparam_node::strategy_rparam_node(
 	const string &strategy_name) :
 	strategy_name(strategy_name)
 {
+}
+
+void legone::strategy_rparam_node::display(ostream &os) const
+{
+	os << "\t\t\trparam_node: strategy: " << strategy_name << endl;
+}
+
+void legone::strategy_rparam_node::walk(bool print) const
+{
+	if (print)
+	{
+		display(std::cout);
+	}
 }
 
 legone::payoff_exp_rparam_node::payoff_exp_rparam_node(
@@ -77,6 +294,44 @@ legone::payoff_exp_rparam_node::payoff_exp_rparam_node(
 	{
 		basic_payoffs.push_back(std::get<0>(term));
 		coefficients.push_back(std::get<1>(term));
+	}
+}
+
+void legone::payoff_exp_rparam_node::display(ostream &os) const
+{
+	string s = "\t\t\trparam_node: payoff_exp: ";
+	for (auto i = 0; i < basic_payoffs.size(); i++)
+	{
+		auto payoff = basic_payoffs.at(i);
+		if(coefficients.at(i) > 1)
+		{
+			payoff = format("{}*{}", coefficients.at(i), payoff);
+		}
+		else if(coefficients.at(i) < -1)
+		{
+			payoff = format("{}*{}", coefficients.at(i), payoff);
+		}
+		else if(coefficients.at(i) == -1)
+		{
+			payoff = format("-{}", payoff);
+		}
+		else if(coefficients.at(i) == 0)
+		{
+			continue;
+		}
+		s += payoff + " + ";
+	}
+	s.pop_back();
+	s.pop_back();
+	s.pop_back();
+	os << s << endl;
+}
+
+void legone::payoff_exp_rparam_node::walk(bool print) const
+{
+	if (print)
+	{
+		display(std::cout);
 	}
 }
 
@@ -99,5 +354,79 @@ legone::operation_node::operation_node(const string &name,
 									 "type of an operation");
 		}
 		rets.push_back(std::make_tuple(ret_names[i], ret_types[i]));
+	}
+}
+
+void legone::operation_node::walk(bool print) const
+{
+	if (print)
+	{
+		std::cout << "operation begin: " << std::endl;
+		std::cout << "\tname: " << name << std::endl;
+		std::cout << "\tfparams: ";
+		if(fparams.size() == 0)
+		{
+			std::cout << "none" << std::endl;
+		}
+		else
+		{
+			std::cout << std::endl;
+		}
+	}
+	for(auto &fparam : fparams)
+	{
+		std::cout << "\t\t" << std::get<0>(fparam) << " : " << static_cast<int>(std::get<1>(fparam)) << std::endl;
+	}
+	if (print)
+	{
+		std::cout << "\trets: ";
+		if(rets.size() == 0)
+		{
+			std::cout << "none" << std::endl;
+		}
+		else
+		{
+			std::cout << std::endl;
+		}
+	}
+	for(auto &ret : rets)
+	{
+		std::cout << "\t\t" << std::get<0>(ret) << " : " << static_cast<int>(std::get<1>(ret)) << std::endl;
+	}
+	if (print)
+	{
+		std::cout << "\textra_params: ";
+		if(extra_params.size() == 0)
+		{
+			std::cout << "none" << std::endl;
+		}
+		else
+		{
+			std::cout << std::endl;
+		}
+	}
+	for(auto &extra_param : extra_params)
+	{
+		std::cout << "\t\t" << extra_param << std::endl;
+	}
+	if (print)
+	{
+		std::cout << "\tconstraints: ";
+		if(constraints.size() == 0)
+		{
+			std::cout << "none" << std::endl;
+		}
+		else
+		{
+			std::cout << std::endl;
+		}
+	}
+	for(auto &constraint : constraints)
+	{
+		constraint->walk(print);
+	}
+	if (print)
+	{
+		std::cout << "operation end" << std::endl;
 	}
 }

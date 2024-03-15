@@ -129,7 +129,7 @@ operation_defs:
   }
   | operation_defs operation_def { 
     $$ = std::move($1);
-    if($$[$2->name]) {
+    if($$.find($2->name)!=$$.end()) {
       yy::parser::error(drv.location, "operation " + $2->name + " already defined");
     } else {
       $$[$2->name] = std::move($2);
