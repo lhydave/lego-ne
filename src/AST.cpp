@@ -235,11 +235,10 @@ legone::construct_stmt_node::construct_stmt_node(
 	rets(std::move(rets)),
 	operation_name(operation_name), rparams(std::move(rparams))
 {
-	// TODO: figure out why this is error
-	// if(rets.size() == 0)
-	// {
-	// 	throw std::runtime_error("Construct statement must have at least one return value");
-	// }
+	if(this->rets.size() == 0)
+	{
+		throw std::runtime_error("Construct statement must have at least one return value");
+	}
 }
 
 void legone::construct_stmt_node::walk(bool print) const
