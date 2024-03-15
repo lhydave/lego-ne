@@ -36,9 +36,10 @@ exp                         ::= add_exp;
 add_exp                     ::= mul_exp | add_exp ("+" | "-") mul_exp;
 mul_exp                     ::= primary_exp | mul_exp "*" val;
 primary_exp                 ::= val | "(" exp ")";
-val                         ::= number | payoff_val | f_val;
+val                         ::= number | payoff_val | f_val | param;
 payoff_val                  ::= IDENTIFIER "(" strategy_list ")";
-f_val                       ::= f_name "(" [strategy_list] ")";
+f_val                       ::= f_name "(" strategy_list ")";
+param                       ::= IDENTIFIER;
 f_name                      ::= "f" number;
 strategy_list               ::= strategy_rparam {"," strategy_rparam};
 

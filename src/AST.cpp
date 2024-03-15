@@ -275,6 +275,10 @@ void legone::construct_stmt_node::walk(bool print) const
 	{
 		rparam->walk(print);
 	}
+	if (print)
+	{
+		std::cout << "\tconstruct_stmt end" << std::endl;
+	}
 }
 
 legone::strategy_rparam_node::strategy_rparam_node(
@@ -314,15 +318,15 @@ void legone::payoff_exp_rparam_node::display(ostream &os) const
 		auto payoff = basic_payoffs.at(i);
 		if(coefficients.at(i) > 1)
 		{
-			payoff = format("{}*{}", coefficients.at(i), payoff);
+			payoff = format("{} * {}", coefficients.at(i), payoff);
 		}
 		else if(coefficients.at(i) < -1)
 		{
-			payoff = format("{}*{}", coefficients.at(i), payoff);
+			payoff = format("{} * {}", coefficients.at(i), payoff);
 		}
 		else if(coefficients.at(i) == -1)
 		{
-			payoff = format("-{}", payoff);
+			payoff = format(" - {}", payoff);
 		}
 		else if(coefficients.at(i) == 0)
 		{
