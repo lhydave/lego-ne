@@ -4,6 +4,7 @@
 #define LEGO_DRIVER_HPP
 #include "legone_parser.hpp"
 #include "ast.hpp"
+#include "gen_code/constraint.hpp"
 #include <map>
 #include <string>
 // Give Flex the prototype of yylex we want ...
@@ -36,6 +37,9 @@ public:
 	// print the ast
 	bool print_ast;
 
+	// generate constraint program AST
+	constraint::optimization_tree optimization_ast;
+	void gen_constraint_ast();
 }; // class driver
 
 #endif // LEGO_DRIVER_HPP
