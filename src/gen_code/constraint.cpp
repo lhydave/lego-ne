@@ -83,8 +83,7 @@ unique_ptr<exp_node> constraint::param_exp_node::clone(
 	return make_unique<param_exp_node>(param_name);
 }
 
-void constraint::optimization_tree::gen_tree(
-	const legone::ast_root &ast)
+void constraint::optimization_tree::gen_tree(const legone::ast_root &ast)
 {
 	num_players = ast.num_players;
 	// find all strategy names
@@ -100,6 +99,13 @@ void constraint::optimization_tree::gen_tree(
 			player_strategies[int_type].insert(name);
 		}
 	}
+	// put in all payoff names
+	player_strategies[0] = unordered_set<string>();
+	for (int i = 1; i <= num_players; i++)
+	{
+		player_strategies[0].insert(format("U{}", i));
+	}
+
 	// generate all name_alias
 	gen_alias();
 	// generate all constraints
@@ -448,10 +454,17 @@ void constraint::optimization_tree::quantifier_eliminate_with_f(
 	const unique_ptr<exp_node> &exp, deque<tuple<string, int>> &quantifiers,
 	unordered_map<string, string> &instantiated_var)
 {
-	if (quantifiers.size() == 1) // the final quantifier
+	// the final quantifier, but a payoff quantifier
+	if (quantifiers.size() == 1 and std::get<1>(quantifiers.front()) == 0)
+	{
+		return;
+	}
+	// the final quantifier, and a strategy quantifier
+	if (quantifiers.size() == 1)
 	{
 		auto one_quantified_exp = exp->clone(instantiated_var);
-		change_payoff2f(one_quantified_exp, std::get<1>(quantifiers.front()), std::get<0>(quantifiers.front()));
+		change_payoff2f(one_quantified_exp, std::get<1>(quantifiers.front()),
+			std::get<0>(quantifiers.front()));
 		auto [var, type] = quantifiers.front();
 		for (const auto &strategy : player_strategies[type])
 		{
@@ -462,6 +475,7 @@ void constraint::optimization_tree::quantifier_eliminate_with_f(
 		}
 		return;
 	}
+	// not the final quantifier
 	auto [var, type] = quantifiers.front();
 	quantifiers.pop_front();
 	for (const auto &strategy : player_strategies[type])
