@@ -35,7 +35,13 @@ class construct_stmt_node;
 class exp_node;
 class rparam_node;
 
-class ast_root {
+class ast_node_base {
+public:
+	virtual ~ast_node_base() = default;
+	virtual void walk(bool print = false) const = 0;
+};
+
+class ast_root : public ast_node_base {
 public:
 	size_t num_players;
 	unordered_map<string, unique_ptr<operation_node>> operations;
@@ -45,7 +51,7 @@ public:
 	void walk(bool print = false) const;
 };
 
-class operation_node {
+class operation_node : public ast_node_base {
 public:
 	string name;
 	vector<tuple<string, basic_type>> fparams;
@@ -61,7 +67,7 @@ public:
 	void walk(bool print = false) const;
 };
 
-class algo_node {
+class algo_node : public ast_node_base {
 public:
 	vector<unique_ptr<construct_stmt_node>> constructs;
 	vector<string> rets;
@@ -71,7 +77,7 @@ public:
 	void walk(bool print = false) const;
 };
 
-class constraint_node {
+class constraint_node : public ast_node_base {
 public:
 	enum class comp_op { EQ, LEQ, GEQ };
 	vector<tuple<string, basic_type>> quantifiers;
@@ -87,7 +93,7 @@ public:
 	static comp_op str2comp_op(const string &op);
 };
 
-class construct_stmt_node {
+class construct_stmt_node : public ast_node_base {
 public:
 	vector<tuple<string, basic_type>> rets;
 	string operation_name;
@@ -98,7 +104,7 @@ public:
 	void walk(bool print = false) const;
 };
 
-class rparam_node {
+class rparam_node : public ast_node_base {
 public:
 	enum class rparam_type { STRATEGY, PAYOFF_EXP };
 	rparam_type type;
@@ -127,13 +133,12 @@ public:
 	void walk(bool print = false) const override;
 };
 
-class exp_node {
+class exp_node : public ast_node_base {
 public:
 	enum class exp_type { NUM, OP, PAYOFF, F_VAL, PARAM };
 	exp_type type;
 
 	virtual ~exp_node() = default;
-	friend ostream& operator<<(ostream &os, const exp_node &exp);
 	virtual void display(ostream &os) const = 0;
 	virtual void walk(bool print = false) const = 0;
 };

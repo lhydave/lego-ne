@@ -33,10 +33,9 @@ public:
 	bool trace_scanning;
 	// The token's location used by the scanner.
 	yy::location location;
-
-
 	// print the ast
 	bool print_ast;
+
 }; // class driver
 
 #endif // LEGO_DRIVER_HPP
