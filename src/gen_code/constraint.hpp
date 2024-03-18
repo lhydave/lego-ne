@@ -139,6 +139,10 @@ public:
 private:
 	void gen_alias();
 	void gen_default_constraints();
+	unique_ptr<exp_node> legone_ast_walk(
+	const unique_ptr<legone::exp_node> &exp,
+	const unique_ptr<legone::operation_node> &operation,
+	const unique_ptr<legone::construct_stmt_node> &construct);
 	unique_ptr<exp_node> constraint_node2constraint(
 		const unique_ptr<legone::constraint_node> &constraint,
 		const unique_ptr<legone::operation_node> &operation,

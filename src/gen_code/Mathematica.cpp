@@ -5,42 +5,15 @@ using namespace mathematica;
 mathematica::generator::generator(const constraint::optimization_tree &tree) :
 	tree(tree), num_players(tree.num_players)
 {
-	// DEBUG - output number of players, name_alias
-	std::cout << "[DEBUG] num_players: " << num_players << std::endl
-			  << std::flush;
-	for (const auto &[name, alias] : tree.name_alias)
-	{
-		std::cout << "[DEBUG] name: " << name << ", alias: " << alias
-				  << std::endl
-				  << std::flush;
-	}
 }
 
 string mathematica::generator::gen_code(const string &file) const
 {
 	auto [alias_decl, alias_in_fun_call] = gen_alias_and_param();
-	std::cout << "[DEBUG] alias_decl: " << std::endl
-			  << alias_decl << std::endl
-			  << std::flush;
-	std::cout << "[DEBUG] alias_in_fun_call: " << std::endl
-			  << alias_in_fun_call << std::endl
-			  << std::flush;
 	auto opt_mix_func = gen_opt_mix_func();
-	std::cout << "[DEBUG] opt_mix_func: " << std::endl
-			  << opt_mix_func << std::endl
-			  << std::flush;
 	auto constraints = gen_constraints();
-	std::cout << "[DEBUG] constraints: " << std::endl
-			  << constraints << std::endl
-			  << std::flush;
 	auto [opt_mix_bounds_decl, opt_mix_bounds_in_fun_call] =
 		gen_opt_mix_bounds();
-	std::cout << "[DEBUG] opt_mix_bounds_decl: " << std::endl
-			  << opt_mix_bounds_decl << std::endl
-			  << std::flush;
-	std::cout << "[DEBUG] opt_mix_bounds_in_fun_call: " << std::endl
-			  << opt_mix_bounds_in_fun_call << std::endl
-			  << std::flush;
 	return format("(* Mathematica code generated from {} *)\n\n(* name alias "
 				  "and parameters *)\n{}\n(* constraint for optimal mixing "
 				  "operation *)\n{}\n{}\n(* constraints *)\n{}\n(* solve the "
@@ -55,9 +28,6 @@ tuple<string, string> mathematica::generator::gen_alias_and_param() const
 	string alias_decl, alias_in_fun_call;
 	for (const auto &[name, alias] : tree.name_alias)
 	{
-		std::cout << "[DEBUG] name: " << name << ", alias: " << alias
-				  << std::endl;
-		std::fflush(stdout);
 		for (auto i = 1; i <= num_players; i++)
 		{
 			alias_decl += format("{}_U{};\t(* U{}{} *)\n", alias, i, i, name);
@@ -66,8 +36,14 @@ tuple<string, string> mathematica::generator::gen_alias_and_param() const
 			alias_in_fun_call += format("{}_f{}, ", alias, i);
 		}
 	}
+	for (const auto &param : tree.params)
+	{
+		alias_decl += format("{};\t(* param {} *)\n", param, param);
+		alias_in_fun_call += format("{}, ", param);
+	}
 	alias_in_fun_call.pop_back();
 	alias_in_fun_call.pop_back();
+
 	return {alias_decl, alias_in_fun_call};
 }
 
@@ -126,16 +102,6 @@ static auto generate_all_pair_sets(int num_players)
 	}
 	std::sort(ret.begin(), ret.end(),
 		[](const auto &a, const auto &b) { return a.size() > b.size(); });
-	// DEBUG: print all pair sets
-	std::cout << "[DEBUG] all pair sets: " << std::endl;
-	for (const auto &pair_set : ret)
-	{
-		std::cout << "[DEBUG] pair set: " << std::endl;
-		for (const auto &[i, j] : pair_set)
-		{
-			std::cout << "[DEBUG] i: " << i << ", j: " << j << std::endl;
-		}
-	}
 	return ret;
 }
 
@@ -224,17 +190,6 @@ static auto gen_all_opt_mix_pairs(int num_players,
 		}
 		strategy_pairs[i] = pairs;
 	}
-	// DEBUG: print all strategy pairs
-	std::cout << "[DEBUG] all strategy pairs: " << std::endl;
-	for (const auto &[i, pairs] : strategy_pairs)
-	{
-		std::cout << "[DEBUG] i: " << i << std::endl;
-		for (const auto &[pair1, pair2] : pairs)
-		{
-			std::cout << "[DEBUG] pair1: " << pair1 << ", pair2: " << pair2
-					  << std::endl;
-		}
-	}
 	// generate all strategy combinations with one fixed player
 	vector<int> player_indices(num_players);
 	std::iota(player_indices.begin(), player_indices.end(), 1);
@@ -291,7 +246,7 @@ tuple<string, string> mathematica::generator::gen_opt_mix_bounds() const
 			{
 				ret_decl_code += ", ";
 			}
-			ret_decl_code += format("{}f{}, {}f{}", endpoint_a_alias, i + 1,
+			ret_decl_code += format("{}_f{}, {}_f{}", endpoint_a_alias, i + 1,
 				endpoint_b_alias, i + 1);
 		}
 		ret_decl_code += "];";

@@ -5,7 +5,7 @@ CFLAGS 		:= -lm -O2 -Wall -std=c++20 #$(CDEBUG)
 INCLUDEDIR 	:= -Ifront -Iback
 INCLUDE 	:= main.cpp ast.cpp driver.cpp
 INCLUDE		+= gen_code/constraint.cpp gen_code/mathematica.cpp
-YACCDEBUG	:= -v --report=all
+YACCDEBUG	:= # -v --report=all
 PARSER_NAME := legone_parser
 LEXER_NAME  := legone_lexer
 all: compiler

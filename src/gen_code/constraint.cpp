@@ -425,7 +425,7 @@ static unique_ptr<exp_node> replace_fpayoff_with_rpayoff(
 	return root;
 }
 
-static unique_ptr<exp_node> legone_ast_walk(
+unique_ptr<exp_node> optimization_tree::legone_ast_walk(
 	const unique_ptr<legone::exp_node> &exp,
 	const unique_ptr<legone::operation_node> &operation,
 	const unique_ptr<legone::construct_stmt_node> &construct)
@@ -462,6 +462,7 @@ static unique_ptr<exp_node> legone_ast_walk(
 	{
 		const auto param_exp =
 			dynamic_cast<const legone::param_exp_node *>(exp.get());
+		params.insert(param_exp->param_name);
 		return make_unique<param_exp_node>(param_exp->param_name);
 	}
 	else if (exp->type == legone::exp_node::exp_type::F_VAL)

@@ -39,7 +39,7 @@ public:
 	string gen_code(const string &file) const;
 
 private:
-	string opt_mix_func_name = "opt_mix_bound";
+	string opt_mix_func_name = "optmix";
 	string constraint_name = "constraints";
     string opt_mix_bound_prefix = "bound";
 	string optimization_extra_param =

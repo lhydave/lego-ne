@@ -28,7 +28,6 @@ void driver::gen_mathematica_code()
 {
 	// initialize mathematica generator
 	mathematica_gen = make_unique<mathematica::generator>(optimization_ast);
-	std::cout << "[DEBUG] gen_mathematica_code" << std::endl;
 	mathematica_code = mathematica_gen->gen_code(file);
 	std::fstream output_file(mathematica_filename,
 		std::ios::out | std::ios::trunc);
