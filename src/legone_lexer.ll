@@ -104,7 +104,6 @@ yy::parser::symbol_type make_PLAYER_T(const std::string &s, const yy::parser::lo
 yy::parser::symbol_type make_STRING(const std::string &s, const yy::parser::location_type& loc)
 {
   std::string str = s.substr(1, s.size()-2);
-  std::cout << "[DEBUG] string: " << str << std::endl;
   return yy::parser::make_STRING(str, loc);
 }
 

@@ -22,3 +22,4 @@ def max_item() -> List[p1, p2]:
 def algo():
     s1: p1, s2: p2 = max_item()
     t1: p1 = best_response1(U1, s2)
+    

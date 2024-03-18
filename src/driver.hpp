@@ -5,7 +5,10 @@
 #include "legone_parser.hpp"
 #include "ast.hpp"
 #include "gen_code/constraint.hpp"
+#include "gen_code/mathematica.hpp"
 #include <map>
+#include <memory>
+#include <fstream>
 #include <string>
 // Give Flex the prototype of yylex we want ...
 #define YY_DECL yy::parser::symbol_type yylex(driver &drv)
@@ -40,6 +43,13 @@ public:
 	// generate constraint program AST
 	constraint::optimization_tree optimization_ast;
 	void gen_constraint_ast();
+
+	// generate mathematica code
+	unique_ptr<mathematica::generator> mathematica_gen;
+	string mathematica_filename;
+	string mathematica_code;
+	bool print_mathematica_code;
+	void gen_mathematica_code();
 }; // class driver
 
 #endif // LEGO_DRIVER_HPP

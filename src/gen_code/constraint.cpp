@@ -39,17 +39,6 @@ string constraint::op_exp_node::to_string(
 		right->to_string(name_alias));
 }
 
-string constraint::payoff_exp_node::strategy_to_string() const
-{
-	string result = format("({}", strategies.at(0));
-	for (size_t i = 1; i < strategies.size(); i++)
-	{
-		result += format(",{}", strategies.at(i));
-	}
-	result += ")";
-	return result;
-}
-
 unique_ptr<exp_node> constraint::payoff_exp_node::clone(
 	const unordered_map<string, string> &instantiated_var) const
 {
@@ -76,26 +65,15 @@ unique_ptr<exp_node> constraint::payoff_exp_node::clone(
 string constraint::payoff_exp_node::to_string(
 	const unordered_map<string, string> &name_alias) const
 {
-	auto strategies_string = strategy_to_string();
+	auto strategies_string = strategy_to_string(strategies);
 	if (name_alias.find(strategies_string) !=
 		name_alias.end()) // use name alias
 	{
 		strategies_string = name_alias.at(strategies_string);
-		return format("{}{}", strategies_string, payoff_name);
+		return format("{}_{}", strategies_string, payoff_name);
 	}
 	// ordinary presentation
 	return format("{}{}", payoff_name, strategies_string);
-}
-
-string constraint::f_val_exp_node::strategy_to_string() const
-{
-	string result = format("({}", strategies.at(0));
-	for (size_t i = 1; i < strategies.size(); i++)
-	{
-		result += format(",{}", strategies.at(i));
-	}
-	result += ")";
-	return result;
 }
 
 unique_ptr<exp_node> constraint::f_val_exp_node::clone(
@@ -119,12 +97,12 @@ unique_ptr<exp_node> constraint::f_val_exp_node::clone(
 string constraint::f_val_exp_node::to_string(
 	const unordered_map<string, string> &name_alias) const
 {
-	auto strategies_string = strategy_to_string();
+	auto strategies_string = strategy_to_string(strategies);
 	if (name_alias.find(strategies_string) !=
 		name_alias.end()) // use name alias
 	{
 		strategies_string = name_alias.at(strategies_string);
-		return format("{}{}", strategies_string, f_name);
+		return format("{}_{}", strategies_string, f_name);
 	}
 	// ordinary presentation
 	return format("{}{}", f_name, strategies_string);
@@ -172,6 +150,11 @@ void constraint::optimization_tree::gen_tree(const legone::ast_root &ast)
 	{
 		auto operation_name = construct->operation_name;
 		const auto &operation = ast.operations.at(operation_name);
+		// push in all extra params
+		for (const auto &param : operation->extra_params)
+		{
+			params.insert(param);
+		}
 		for (const auto &constraint : operation->constraints)
 		{
 			auto quantified_constraint =
@@ -638,4 +621,15 @@ void constraint::optimization_tree::quantifier_eliminate_with_f(
 	}
 	// restore the quantifier
 	quantifiers.push_back({var, type});
+}
+
+string constraint::strategy_to_string(const vector<string>& strategies)
+{
+	string result = format("({}", strategies.at(0));
+	for (size_t i = 1; i < strategies.size(); i++)
+	{
+		result += format(",{}", strategies.at(i));
+	}
+	result += ")";
+	return result;
 }

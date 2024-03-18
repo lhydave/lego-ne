@@ -10,3 +10,4 @@ compiler
 *.output
 results
 src/location.hh
+*.m

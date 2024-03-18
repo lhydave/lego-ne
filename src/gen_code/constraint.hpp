@@ -85,7 +85,6 @@ public:
 	{
 		type = exp_type::PAYOFF;
 	}
-	string strategy_to_string() const;
 	unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var) const override;
 	string to_string(const unordered_map<string, string>& name_alias) const override;
@@ -101,7 +100,6 @@ public:
 	{
 		type = exp_type::F_VAL;
 	}
-	string strategy_to_string() const;
 	unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var) const override;
 	string to_string(const unordered_map<string, string>& name_alias) const override;
@@ -130,6 +128,7 @@ public:
 	 * 3. for f_val fk(x1, x2, ...), the alias is name_alias + "_fk"
 	 */
 	unordered_map<string, string> name_alias;
+	unordered_set<string> params;
 	vector<unique_ptr<exp_node>> constraints;
 
 	void gen_tree(const legone::ast_root &ast);
@@ -154,6 +153,8 @@ private:
 		unordered_map<string, string>
 			&instantiated_var); // replace forall xi:i Ui with fi+Ui
 };
+
+string strategy_to_string(const vector<string> &strategies);
 } // namespace constraint
 
 #endif

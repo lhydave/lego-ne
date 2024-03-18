@@ -13,6 +13,23 @@ int main(int argc, char *argv[])
 		else if (argv[i] == std::string("-v"))
 		{
 			drv.print_ast = true;
+			drv.print_mathematica_code = true;
+		}
+		else if (argv[i] == std::string("-o"))
+		{
+			if (i + 1 < argc)
+			{
+				drv.mathematica_filename = argv[i + 1];
+				i++;
+			}
+			else
+			{
+				if (!filename.empty())
+				{
+					std::cerr << "Error: more than one file name" << std::endl;
+					return 1;
+				}
+			}
 		}
 		else
 			filename = argv[i];
@@ -35,6 +52,13 @@ int main(int argc, char *argv[])
 		std::cout << std::endl
 				  << "printing constraints with alias..." << std::endl;
 		drv.optimization_ast.print_constraints(std::cout, true);
+	}
+	drv.gen_mathematica_code();
+	if (drv.print_mathematica_code)
+	{
+		std::cout << std::endl
+				  << "printing mathematica code..." << std::endl;
+		std::cout << drv.mathematica_code;
 	}
 	return 0;
 }
