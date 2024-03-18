@@ -16,3 +16,8 @@ int driver::parse2ast(const std::string &f)
 	scan_end();
 	return res;
 }
+
+void driver::gen_constraint_ast()
+{
+	optimization_ast.gen_tree(legone_ast);
+}

@@ -40,6 +40,7 @@ public:
 	virtual unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var)
 		const = 0; // for quantifier elimination
+	virtual string to_string(const unordered_map<string, string>& name_alias) const = 0;
 };
 
 class num_exp_node : public exp_node {
@@ -52,6 +53,7 @@ public:
 	}
 	unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var) const override;
+	string to_string(const unordered_map<string, string>& name_alias) const override;
 };
 
 class op_exp_node : public exp_node {
@@ -70,6 +72,7 @@ public:
 	}
 	unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var) const override;
+	string to_string(const unordered_map<string, string>& name_alias) const override;
 };
 
 class payoff_exp_node : public exp_node {
@@ -85,6 +88,7 @@ public:
 	string strategy_to_string() const;
 	unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var) const override;
+	string to_string(const unordered_map<string, string>& name_alias) const override;
 };
 
 class f_val_exp_node : public exp_node {
@@ -100,6 +104,7 @@ public:
 	string strategy_to_string() const;
 	unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var) const override;
+	string to_string(const unordered_map<string, string>& name_alias) const override;
 };
 
 class param_exp_node : public exp_node {
@@ -112,6 +117,7 @@ public:
 	}
 	unique_ptr<exp_node> clone(
 		const unordered_map<string, string> &instantiated_var) const override;
+	string to_string(const unordered_map<string, string>& name_alias) const override;
 };
 
 class optimization_tree {
@@ -127,11 +133,13 @@ public:
 	vector<unique_ptr<exp_node>> constraints;
 
 	void gen_tree(const legone::ast_root &ast);
+	void generate_combinations(vector<vector<string>> &combinations,
+		vector<string> &current, int depth, vector<int> &player_indices);
+	void print_constraints(ostream &os, bool with_alias) const;
 
 private:
 	void gen_alias();
-	void generate_combinations(vector<vector<string>> &combinations,
-		vector<string> &current, int depth, vector<int> &player_indices);
+	void gen_default_constraints();
 	unique_ptr<exp_node> constraint_node2constraint(
 		const unique_ptr<legone::constraint_node> &constraint,
 		const unique_ptr<legone::operation_node> &operation,
@@ -146,7 +154,6 @@ private:
 		unordered_map<string, string>
 			&instantiated_var); // replace forall xi:i Ui with fi+Ui
 };
-
 } // namespace constraint
 
 #endif

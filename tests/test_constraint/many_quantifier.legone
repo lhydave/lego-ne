@@ -1,0 +1,24 @@
+
+num_players = 2
+
+def best_response1(U: Payoff, s2: p2) -> p1:
+    description = "Compute the best response for player 1 against s2"
+    extra_params = ["rho"]
+    constraints = [
+        forall(x:p1).(U(x1, s2) >= U(x, s2)),
+        U(x1,s2) >= rho * U(x1,s2)
+    ]
+    return x1
+
+def max_item() -> List[p1, p2]:
+    description = "Compute the maximum payoff among all the items"
+    extra_params = []
+    constraints = [
+        forall(x:p1).forall(y:p2).forall(U:Payoff).(U(x,y)<=U(x1,y1)),
+    ]
+    return x1, y1
+
+
+def algo():
+    s1: p1, s2: p2 = max_item()
+    t1: p1 = best_response1(U1, s2)
