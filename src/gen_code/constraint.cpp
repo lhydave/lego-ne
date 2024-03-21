@@ -586,6 +586,30 @@ static void change_payoff2f(unique_ptr<exp_node> &exp, int player_index,
 	}
 }
 
+static void identity_check_walk(unique_ptr<exp_node> &exp, int player_index,
+	const string &var_name, unordered_set<string> &identity_set)
+{
+	if (identity_set.size() > 1)
+	{
+		return;
+	}
+	if (exp->type == exp_node::exp_type::OP)
+	{
+		auto &op_exp = dynamic_cast<op_exp_node &>(*exp);
+		identity_check_walk(op_exp.left, player_index, var_name, identity_set);
+		identity_check_walk(op_exp.right, player_index, var_name, identity_set);
+	}
+	else if (exp->type == exp_node::exp_type::PAYOFF)
+	{
+		auto &payoff_exp = dynamic_cast<payoff_exp_node &>(*exp);
+		if (payoff_exp.strategies.at(player_index - 1) == var_name)
+		{
+			identity_set.insert(payoff_exp.payoff_name +
+				strategy_to_string(payoff_exp.strategies));
+		}
+	}
+}
+
 void constraint::optimization_tree::quantifier_eliminate_with_f(
 	const unique_ptr<exp_node> &exp, deque<tuple<string, int>> &quantifiers,
 	unordered_map<string, string> &instantiated_var)
@@ -599,6 +623,15 @@ void constraint::optimization_tree::quantifier_eliminate_with_f(
 	if (quantifiers.size() == 1)
 	{
 		auto one_quantified_exp = exp->clone(instantiated_var);
+		// do the identity check
+		unordered_set<string> identity_set;
+		identity_check_walk(one_quantified_exp,
+			std::get<1>(quantifiers.front()), std::get<0>(quantifiers.front()),
+			identity_set);
+		if (identity_set.size() > 1) // not the same identity, cannot eliminate
+		{
+			return;
+		}
 		change_payoff2f(one_quantified_exp, std::get<1>(quantifiers.front()),
 			std::get<0>(quantifiers.front()));
 		auto [var, type] = quantifiers.front();
@@ -624,7 +657,7 @@ void constraint::optimization_tree::quantifier_eliminate_with_f(
 	quantifiers.push_back({var, type});
 }
 
-string constraint::strategy_to_string(const vector<string>& strategies)
+string constraint::strategy_to_string(const vector<string> &strategies)
 {
 	string result = format("({}", strategies.at(0));
 	for (size_t i = 1; i < strategies.size(); i++)
