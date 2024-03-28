@@ -47,14 +47,32 @@ tuple<string, string> mathematica::generator::gen_alias_and_param() const
 	return {alias_decl, alias_in_fun_call};
 }
 
-// generate the intersection of two lines and a1-b1, a2-b2, and its condition
-static tuple<string, string> gen_intersect(const string &a1, const string &a2,
-	const string &b1, const string &b2)
+// generate the intersection point of two lines and a1-b1, a2-b2, and its
+// condition
+static tuple<string, string> gen_intersect_point(const string &a1,
+	const string &a2, const string &b1, const string &b2)
 {
 	return {format("({} * {} - {} * {}) / ({} + {} - {} - {})", a1, b2, a2, b1,
 				a1, b2, a2, b1),
 		format("(({} > {} && {} < {}) || ({} < {} && {} > {}))", a1, b1, a2, b2,
 			a1, b1, a2, b2)};
+}
+
+// generate the intersection of two lines and a1-b1, a2-b2 and evaluate at f
+// values
+static tuple<string, string> gen_intersect(const string &a1, const string &a2,
+	const string &b1, const string &b2, int num_players)
+{
+	auto [v, c] = gen_intersect_point(a1, a2, b1, b2);
+	string ret_v = "Max[";
+	for (auto i = 1; i <= num_players; i++)
+	{
+		if (i != 1)
+			ret_v += ", ";
+		ret_v += format("(1 - {}) * vara{} + {} * varb{}", v, i, v, i);
+	}
+	ret_v += "]";
+	return {ret_v, c};
 }
 
 // the default minimum: the minimum over two endpoints a,b, a series of maximum
@@ -129,7 +147,7 @@ string mathematica::generator::gen_opt_mix_func() const
 		for (auto [i, j] : pair_set)
 		{
 			auto [v, c] = gen_intersect(format("vara{}", i),
-				format("vara{}", j), format("varb{}", i), format("varb{}", j));
+				format("vara{}", j), format("varb{}", i), format("varb{}", j), num_players);
 			val += format(", {}", v);
 			condition += format(" {} &&", c);
 		}
