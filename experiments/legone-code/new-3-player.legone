@@ -1,0 +1,78 @@
+num_players = 3
+
+def Random3() -> p3:
+    description = "Random strategy for player 3"
+    extra_params = []
+    constraints = []
+    return x3
+
+def BestResponse1(s2: p2, s3: p3) -> p1:
+    description = "Best response for player 1 against (s2, s3)"
+    extra_params = []
+    constraints = [
+        # forall(x1:p1).forall(x2:p1).forall(y:p2).forall(z:p3).(f1(x1,y,z)-f1(x2,y,z)==U1(x2,y,z)-U1(x1,y,z)), # missing default constraints
+        # forall(x:p1).forall(y1:p2).forall(y2:p2).forall(z:p3).(f2(x,y1,z)-f2(x,y2,z)==U2(x,y2,z)-U2(x,y1,z)), # missing default constraints
+        # forall(x:p1).forall(y:p2).forall(z1:p3).forall(z2:p3).(f3(x,y,z1)-f3(x,y,z2)==U3(x,y,z2)-U3(x,y,z1)), # missing default constraints
+        forall(x:p1).(U1(x,s2,s3)<=U1(x1,s2,s3))
+    ]
+    return x1
+
+def BestResponse2(s1: p1, s3: p3) -> p2:
+    description = "Best response for player 2 against (s1, s3)"
+    extra_params = []
+    constraints = [
+        forall(y:p2).(U2(s1,y,s3)<=U2(s1,y1,s3))
+    ]
+    return y1
+
+def BestResponse3(s1: p1, s2: p2) -> p3:
+    description = "Best response for player 3 against (s1, s2)"
+    extra_params = []
+    constraints = [
+        forall(z:p3).(U3(s1,s2,z)<=U3(s1,s2,z1))
+    ]
+    return z1
+
+def StationaryPoint3(s3:p3) -> List[p1, p2, p1, p2]:
+    description = "Compute the stationary point and its dual solution of players 1 and 2 when player 3 plays s3"
+    extra_params = ["rho3"]
+    constraints = [
+        f1(xs,ys,s3)>=f2(xs,ys,s3), # branch condition
+        0<=rho3,
+        rho3<=1,
+        f1(xs,ys,s3)==f2(xs,ys,s3),
+        forall(x:p1).(U1(x,ys,s3)<=U1(w,ys,s3)),
+        forall(y:p2).(U2(xs,y,s3)<=U2(xs,z,s3)),
+        forall(x:p1).forall(y:p2).(f1(x,y,s3)<=rho3*(U1(w,y,s3)-U1(x,ys,s3)-U1(xs,y,s3)+U1(xs,ys,s3))+(1-rho3)*(U2(x,z,s3)-U2(xs,y,s3)-U2(x,ys,s3)+U2(xs,ys,s3)))
+    ]
+    return xs, ys, w, z
+
+def StationaryPoint1(s1:p1) -> List[p2, p3, p2, p3]:
+    description = "Compute the stationary point and its dual solution of players 2 and 3 when player 1 plays s1"
+    extra_params = ["rho1"]
+    constraints = [
+        0<=rho1,
+        rho1<=1,
+        f2(s1,xs,ys)==f3(s1,xs,ys),
+        forall(x:p2).(U2(s1,x,ys)<=U2(s1,w,ys)),
+        forall(y:p3).(U3(s1,xs,y)<=U3(s1,xs,z)),
+        forall(x:p2).forall(y:p3).(f2(s1,x,y)<=rho1*(U2(s1,w,y)-U2(s1,x,ys)-U2(s1,xs,y)+U2(s1,xs,ys))+(1-rho1)*(U3(s1,x,z)-U3(s1,xs,y)-U3(s1,x,ys)+U3(s1,xs,ys)))
+    ]
+    return xs, ys, w, z
+
+def EqMix2(y1: p2, y2: p2) -> p2:
+    description = "Equal mixture of two strategies for player 2"
+    extra_params = []
+    constraints = [
+        forall(u:Payoff).forall(x:p1).forall(z:p3).(u(x,y1,z)+u(x,y2,z)==2*u(x,y,z)),
+        forall(x:p1).forall(z:p3).(f1(x,y1,z)+f1(x,y2,z)==2*f1(x,y,z)),
+        forall(x:p1).forall(z:p3).(f3(x,y1,z)+f3(x,y2,z)==2*f3(x,y,z))
+    ]
+    return y
+
+def algo():
+    x3:p3 = Random3()
+    x1s:p1, x2s:p2, w1:p1, w2:p2 = StationaryPoint3(x3)
+    y2_hat:p2 = EqMix2(x2s, w2)
+    y1_hat:p1 = BestResponse1(y2_hat, x3)
+    z2s:p2, z3s:p3, w2:p2, w3:p3 = StationaryPoint1(x1s)

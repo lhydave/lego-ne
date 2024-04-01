@@ -46,7 +46,7 @@ def EqMix2(y1: p2, y2: p2) -> p2:
     description = "Equal mixture of two strategies for player 2"
     extra_params = []
     constraints = [
-        forall(u:Payoff).forall(x:p1).(u(x,y1)+U(x,y2)==2*u(x,y))
+        forall(u:Payoff).forall(x:p1).(u(x,y1)+u(x,y2)==2*u(x,y))
     ]
     return y
 

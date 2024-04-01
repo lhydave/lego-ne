@@ -33,32 +33,6 @@ bound3 = optmix[a_f1, b_f1, a_f2, b_f2];	(* (alpha,beta) -- (alpha,y) *)
 
 bound4 = optmix[c_f1, d_f1, c_f2, d_f2];	(* (x,beta) -- (x,y) *)
 
-(* diagonal upper bound *)
-f1[alpha_, u1_, v1_, h1_, g1_] := alpha*alpha*u1 + alpha*(1 - alpha)*(v1 + h1) + (1 - alpha)*(1 - alpha)*g1;
-f2[alpha_, u2_, v2_, h2_, g2_] := alpha*alpha*u2 + alpha*(1 - alpha)*(v2 + h2) + (1 - alpha)*(1 - alpha)*g2;
-f[alpha_, u1_, v1_, h1_, g1_, u2_, v2_, h2_, g2_] := Max[f1[alpha, u1, v1, h1, g1], f2[alpha, u2, v2, h2, g2]];
-
-minimum1[u1_, v1_, h1_, g1_] := -(v1 + h1 - 2*g1)/(2*(u1 - v1 - h1 + g1));
-minimum2[u2_, v2_, h2_, g2_] := -(v2 + h2 - 2*g2)/(2*(u2 - v2 - h2 + g2));
-
-square[u1_, v1_, h1_, g1_, u2_, v2_, h2_, g2_] := (v1 + h1 - 2*g1 - v2 - h2 + 2*g2)^2 - 4*(u1 - v1 - h1 + g1 - u2 + v2 + h2 - g2)*(g1 - g2);
-
-intersect1[u1_, v1_, h1_, g1_, u2_, v2_, h2_, g2_] := (-(v1 + h1 - 2*g1 - v2 - h2 + 2*g2) + Sqrt[square[u1, v1, h1, g1, u2, v2, h2, g2]])/(2*(u1 - v1 - h1 + g1 - u2 + v2 + h2 - g2));
-intersect2[u1_, v1_, h1_, g1_, u2_, v2_, h2_, g2_] := (-(v1 + h1 - 2*g1 - v2 - h2 + 2*g2) - Sqrt[square[u1, v1, h1, g1, u2, v2, h2, g2]])/(2*(u1 - v1 - h1 + g1 - u2 + v2 + h2 - g2));
-
-deteriorate[g1_, g2_, v1_, h1_, v2_, h2_] := -(g1 - g2)/(v1 + h1 - 2*g1 - v2 - h2 + 2*g2);
-
-computeH[u1_, v1_, h1_, g1_, u2_, v2_, h2_, g2_] := Min[
-    f[0, u1, v1, h1, g1, u2, v2, h2, g2], 
-    f[1, u1, v1, h1, g1, u2, v2, h2, g2], 
-    If[Denominator[minimum1[u1, v1, h1, g1]] > 0 && 0 < minimum1[u1, v1, h1, g1] < 1, f[minimum1[u1, v1, h1, g1], u1, v1, h1, g1, u2, v2, h2, g2], 1], 
-    If[Denominator[minimum2[u2, v2, h2, g2]] > 0 && 0 < minimum2[u2, v2, h2, g2] < 1, f[minimum2[u2, v2, h2, g2], u1, v1, h1, g1, u2, v2, h2, g2], 1], 
-    If[square[u1, v1, h1, g1, u2, v2, h2, g2] >= 0 && Denominator[intersect1[u1, v1, h1, g1, u2, v2, h2, g2]] != 0 && 0 < intersect1[u1, v1, h1, g1, u2, v2, h2, g2] < 1, f[intersect1[u1, v1, h1, g1, u2, v2, h2, g2], u1, v1, h1, g1, u2, v2, h2, g2], 1], 
-    If[square[u1, v1, h1, g1, u2, v2, h2, g2] >= 0 && Denominator[intersect2[u1, v1, h1, g1, u2, v2, h2, g2]] != 0 && 0 < intersect2[u1, v1, h1, g1, u2, v2, h2, g2] < 1, f[intersect2[u1, v1, h1, g1, u2, v2, h2, g2], u1, v1, h1, g1, u2, v2, h2, g2], 1], 
-    If[Denominator[deteriorate[g1, g2, v1, h1, v2, h2]] == 0 && 0 < deteriorate[g1, g2, v1, h1, v2, h2] < 1, f[deteriorate[g1, g2, v1, h1, v2, h2], u1, v1, h1, g1, u2, v2, h2, g2], 1]
-];
-
-bound5 = computeH[a_f1, b_f1, c_f1, d_f1, a_f2, b_f2, c_f2, d_f2];
 
 (* constraints *)
 constraints = {
@@ -179,4 +153,4 @@ constraints = {
 };
 
 (* solve the approximation bound *)
-NMaximize[{Min[bound1, bound2, bound3, bound4, bound5], constraints}, {d_U1, d_f1, d_U2, d_f2, c_U1, c_f1, c_U2, c_f2, b_U1, b_f1, b_U2, b_f2, a_U1, a_f1, a_U2, a_f2, vr, vc}, AccuracyGoal -> 40, WorkingPrecision -> 60, Method -> "DifferentialEvolution", MaxIterations -> 1000]
+NMaximize[{Min[bound1, bound2, bound3, bound4], constraints}, {d_U1, d_f1, d_U2, d_f2, c_U1, c_f1, c_U2, c_f2, b_U1, b_f1, b_U2, b_f2, a_U1, a_f1, a_U2, a_f2, vr, vc}, AccuracyGoal -> 40, WorkingPrecision -> 60, Method -> "DifferentialEvolution", MaxIterations -> 1000]

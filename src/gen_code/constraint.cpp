@@ -31,7 +31,7 @@ string constraint::op_exp_node::to_string(
 	case op_type::MUL: op_string = "*"; break;
 	case op_type::DIV: op_string = "/"; break;
 	case op_type::LEQ: op_string = "<="; break;
-	case op_type::EQ: op_string = "="; break;
+	case op_type::EQ: op_string = "=="; break;
 	case op_type::GEQ: op_string = ">="; break;
 	default: throw std::runtime_error("Unsupported operation type");
 	}
