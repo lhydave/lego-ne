@@ -1,0 +1,25 @@
+num_players = 2
+
+def DMP_LP() -> List[p1, p2, p1, p2]:
+    description = "Compute the DMP solution using linear programming"
+    extra_params = ["vr", "vc"]
+    constraints = [
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing default constraints
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing default constraints
+        0<=vr,
+        vr<=1,
+        0<=vc,
+        vc<=1,
+        U1(alpha,beta)>=vr,
+        U2(alpha,beta)>=vc,
+        U1(alpha,y)>=vr,
+        forall(x1:p1).(U1(x1,y)<=vr),
+        U1(x,beta)>=vr,
+        U2(alpha,y)>=vc,
+        forall(y1:p2).(U2(x,y1)<=vc),
+        U2(x,beta)>=vc
+    ]
+    return x,y,alpha,beta
+
+def algo():
+    x:p1, y:p2, alpha:p1, beta:p2 = DMP_LP()

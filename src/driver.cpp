@@ -2,8 +2,8 @@
 #include "legone_parser.hpp"
 
 driver::driver() :
-	trace_parsing(false), trace_scanning(false),
-	mathematica_gen(nullptr)
+	trace_parsing(false), trace_scanning(false), print_ast(false),
+	mathematica_gen(nullptr), print_mathematica_code(false)
 {
 }
 

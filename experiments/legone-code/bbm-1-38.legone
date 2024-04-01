@@ -1,0 +1,36 @@
+num_players = 2
+
+def BestResponse1(s2: p2) -> p1:
+    description = "Best response for player 1 against s2"
+    extra_params = []
+    constraints = [
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing default constraints
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing default constraints
+        forall(x:p1).(U1(x,s2)<=U1(x1,s2))
+    ]
+    return x1
+
+def BestResponse2(s1: p1) -> p2:
+    description = "Best response for player 2 against s1"
+    extra_params = []
+    constraints = [
+        forall(y:p2).(U2(s1,y)<=U2(s1,y1))
+    ]
+    return y1
+
+def ZeroSumNE(U: Payoff) -> List[p1, p2]:
+    description = "Zero-sum Nash equilibrium"
+    extra_params = []
+    constraints = [
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing default constraints
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing default constraints
+        f1(x1,y1)>=f2(x1,y1), # the branch of the if-else statement
+        forall(x:p1).(U(x,y_star)<=U(x_star,y_star)),
+        forall(y:p2).(U(x_star,y)>=U(x_star,y_star))
+    ]
+    return x_star, y_star
+
+def algo():
+    x_star: p1, y_star: p2 = ZeroSumNE(U1-U2)
+    r1: p1 = BestResponse1(y_star)
+    b2: p2 = BestResponse2(r1)

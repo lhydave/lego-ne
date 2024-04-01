@@ -41,17 +41,20 @@ int main(int argc, char *argv[])
 	else if (drv.print_ast)
 	{
 		drv.legone_ast.walk(true);
+		std::cout << std::endl << "building constraint tree..." << std::endl;
 	}
-	std::cout << std::endl << "building constraint tree..." << std::endl;
 	drv.gen_constraint_ast();
 	if (drv.print_ast)
 	{
+		std::cout << "Done" << std::endl;
 		std::cout << std::endl
 				  << "printing constraints without alias..." << std::endl;
 		drv.optimization_ast.print_constraints(std::cout, false);
+		std::cout << "Done" << std::endl;
 		std::cout << std::endl
 				  << "printing constraints with alias..." << std::endl;
 		drv.optimization_ast.print_constraints(std::cout, true);
+		std::cout << "Done" << std::endl;
 	}
 	drv.gen_mathematica_code();
 	if (drv.print_mathematica_code)
@@ -59,6 +62,7 @@ int main(int argc, char *argv[])
 		std::cout << std::endl
 				  << "printing mathematica code..." << std::endl;
 		std::cout << drv.mathematica_code;
+		std::cout << "Done" << std::endl;
 	}
 	return 0;
 }

@@ -220,8 +220,9 @@ constraint_string:
     $$ = make_unique<constraint_node>($1, std::move(left_exp), std::move(right_exp), op);
   }
 quantifiers:
-  %empty { 
+  quantifier { 
     $$ = vector<tuple<string, basic_type>>(); 
+    $$.push_back($1);
   }
   | quantifiers quantifier { 
     $$ = std::move($1);
@@ -274,6 +275,9 @@ primary_exp:
   }
   | NUMBER { 
     $$ = make_unique<num_exp_node>($1); 
+  }
+  | "(" exp ")" { 
+    $$ = std::move($2); 
   }
 call_val:
   "identifier" "(" strategy_list ")" {

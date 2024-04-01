@@ -12,5 +12,5 @@ find ../tests -type f -name '*.legone' | while read file; do
   # Create the corresponding output directory if it does not exist
   mkdir -p "../results/${relative_dir}"
   # Run the compiler with -p -s -v flags and redirect the output to the corresponding result file
-  ./compiler -v -o "test.m" "$file" > "../results/${relative_dir}/${filename%.legone}_result.txt" 2>&1
+  ./compiler -s -p -v -o "test.m" "$file" > "../results/${relative_dir}/${filename%.legone}_result.txt" 2>&1
 done

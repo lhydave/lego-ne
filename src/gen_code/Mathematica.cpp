@@ -146,8 +146,9 @@ string mathematica::generator::gen_opt_mix_func() const
 		string condition;
 		for (auto [i, j] : pair_set)
 		{
-			auto [v, c] = gen_intersect(format("vara{}", i),
-				format("vara{}", j), format("varb{}", i), format("varb{}", j), num_players);
+			auto [v, c] =
+				gen_intersect(format("vara{}", i), format("vara{}", j),
+					format("varb{}", i), format("varb{}", j), num_players);
 			val += format(", {}", v);
 			condition += format(" {} &&", c);
 		}
@@ -177,6 +178,11 @@ static void gen_all_combinations_with_one_fix(int num_players,
 	if (player_indices[depth] == fix_player_id)
 	{
 		depth += 1; // skip the fixed player
+		if (depth == num_players)
+		{
+			combinations.push_back(current);
+			return;
+		}
 	}
 	for (const auto &strategy : player_strategies.at(player_indices[depth]))
 	{
