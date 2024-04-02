@@ -75,4 +75,4 @@ def algo():
     x1s:p1, x2s:p2, w1:p1, w2:p2 = StationaryPoint3(x3)
     y2_hat:p2 = EqMix2(x2s, w2)
     y1_hat:p1 = BestResponse1(y2_hat, x3)
-    z2s:p2, z3s:p3, w2:p2, w3:p3 = StationaryPoint1(x1s)
+    z2s:p2, z3s:p3, wp2:p2, wp3:p3 = StationaryPoint1(x1s)
