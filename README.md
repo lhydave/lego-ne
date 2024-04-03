@@ -5,7 +5,7 @@
 AutoApproxNE is a tool for automating the design and analysis of approximate Nash equilibria (NE) algorithms. It contains the following components:
 
 1. **LegoNE**: A python-like language for specifying approximate NE algorithms. The user can specify the basic operations of the algorithm, such as computing the best response, computing an NE for a two-layer zero-sum game, and mixing two strategies. Then, the user can write down the algorithm by combining these basic operations. The LegoNE compiler will then generate Mathematica code whose output is the approximation bound of the algorithm.
-2. **LegoNE Compiler**: A compiler that translates the LegoNE code into Mathematica code, which is implemented in OCaml.
+2. **LegoNE Compiler**: A compiler that translates the LegoNE code into Mathematica code, which is implemented in C++ with flex and bison.
 
 ## Installation
 
