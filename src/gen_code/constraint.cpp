@@ -180,8 +180,8 @@ void constraint::optimization_tree::gen_tree(const legone::ast_root &ast)
 			}
 		}
 	}
-	// generate default constraints
-	gen_default_constraints();
+	// generate inherent constraints
+	gen_inherent_constraints();
 }
 
 static vector<string> generate_aliases(int n)
@@ -280,7 +280,7 @@ void constraint::optimization_tree::gen_alias()
 	}
 }
 
-void constraint::optimization_tree::gen_default_constraints()
+void constraint::optimization_tree::gen_inherent_constraints()
 {
 	vector<vector<string>> strategy_combinations;
 	vector<string> current(num_players);

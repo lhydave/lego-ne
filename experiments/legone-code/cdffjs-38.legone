@@ -4,8 +4,8 @@ def BestResponse1(s2: p2) -> p1:
     description = "Best response for player 1 against s2"
     extra_params = []
     constraints = [
-        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing default constraints
-        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing default constraints
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing inherent constraints
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing inherent constraints
         forall(x:p1).(U1(x,s2)<=U1(x1,s2))
     ]
     return x1
@@ -22,8 +22,8 @@ def TwoZeroSumNE() -> List[p1, p2, p1, p2]:
     description = "Zero-sum Nash equilibrium for both players"
     extra_params = []
     constraints = [
-        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing default constraints
-        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing default constraints
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing inherent constraints
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing inherent constraints
         U1(x_star,y_star) >= U2(x_hat, y_hat), # branch condition
         forall(x:p1).(U1(x,y_star)<=U1(x_star,y_star)),
         forall(y:p2).(U1(x_star,y)>=U1(x_star,y_star)),

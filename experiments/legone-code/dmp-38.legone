@@ -4,8 +4,8 @@ def DMP_LP() -> List[p1, p2, p1, p2]:
     description = "Compute the DMP solution using linear programming"
     extra_params = ["vr", "vc"]
     constraints = [
-        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing default constraints
-        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing default constraints
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing inherent constraints
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing inherent constraints
         0<=vr,
         vr<=1,
         0<=vc,
