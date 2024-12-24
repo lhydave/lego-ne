@@ -19,6 +19,10 @@ To build LegoNE compiler, you need to have the following applications installed:
 To run the generated Mathematica code, you need to have the following application installed:
 - Mathematica (>= 13.0)
 
+To run the generated Z3 code, you need to have the following application and package installed:
+- python 3
+- z3-solver (python package)
+
 ### Build
 
 To build the LegoNE compiler, run the following command in the root directory of the project:

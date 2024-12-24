@@ -46,7 +46,7 @@ legone::op_exp_node::op_exp_node(op_type o_type, unique_ptr<exp_node> left,
 
 void legone::op_exp_node::display(ostream &os) const
 {
-	auto op_str = "";
+	string op_str;
 	switch (o_type)
 	{
 	case op_type::ADD: op_str = "+"; break;
