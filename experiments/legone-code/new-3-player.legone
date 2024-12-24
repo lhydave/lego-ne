@@ -65,8 +65,8 @@ def EqMix2(y1: p2, y2: p2) -> p2:
     extra_params = []
     constraints = [
         forall(u:Payoff).forall(x:p1).forall(z:p3).(u(x,y1,z)+u(x,y2,z)==2*u(x,y,z)),
-        forall(x:p1).forall(z:p3).(f1(x,y1,z)+f1(x,y2,z)==2*f1(x,y,z)),
-        forall(x:p1).forall(z:p3).(f3(x,y1,z)+f3(x,y2,z)==2*f3(x,y,z))
+        forall(x:p1).forall(z:p3).(f1(x,y1,z)+f1(x,y2,z)>=2*f1(x,y,z)),
+        forall(x:p1).forall(z:p3).(f3(x,y1,z)+f3(x,y2,z)>=2*f3(x,y,z))
     ]
     return y
 
