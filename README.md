@@ -12,7 +12,7 @@ AutoApproxNE is a tool for automating the design and analysis of approximate Nas
 ### Prerequisites
 
 To build LegoNE compiler, you need to have the following applications installed:
-- gcc/clang (support C++17)
+- gcc/clang (support C++20)
 - flex
 - bison
 
@@ -31,7 +31,7 @@ To build the LegoNE compiler, run the following command in the root directory of
 make
 ```
 
-If the build is successful, you will see a `legone` executable in the root directory. You can also run the following command to clean the build:
+If the build is successful, you will see a `compiler` executable in the root directory. You can also run the following command to clean the build:
 
 ```bash
 make clean
@@ -42,8 +42,15 @@ make clean
 The LegoNE code is written in a file with the extension `.legone`. To compile the LegoNE code, run the following command:
 
 ```bash
-./legone <input_file>.legone
+./compiler <input_file>.legone
 ```
 
 The compiler will generate a Mathematica code in the same directory with the extension `.m`. You can then run the Mathematica code in Mathematica to get the approximation bound of the algorithm.
 
+If you want to generate Z3 code to prove that an algorithm has a bound $0.33$, you can run the following command:
+
+```bash
+./compiler -b 0.33 <input_file>.legone
+```
+
+The compiler will generate a Z3 code in the same directory with the extension `.z3`. You can then run the Z3 code in Python to prove that the algorithm has a bound $0.33$.

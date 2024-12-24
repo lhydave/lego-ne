@@ -22,13 +22,14 @@ int main(int argc, char *argv[])
 			{
 				try
 				{
-					drv.bound_to_prove = std::stod(argv[i]);
+					drv.bound_to_prove = std::stod(argv[i + 1]);
 				}
 				catch (const std::exception &e)
 				{
 					std::cerr << "invalid bound: " << e.what() << std::endl;
 				}
 				proof_mode = true;
+				i++;
 			}
 			else
 			{

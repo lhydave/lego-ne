@@ -17,7 +17,7 @@ string Z3::generator::gen_code(const string &file) const
 	auto approx_bound_constraint = gen_approx_bound_constraint(opt_mix_bounds_in_fun_call);
 
 	auto preamble = format("# Z3 code generated from {}\n", file) +
-					R"(from z3 import Real, If, Solver, ArithRef, sat
+					R"(from z3 import *
 
 # predefined functions
 
@@ -35,8 +35,7 @@ def min_list(nums: list[ArithRef]):
 		return If(a < b, a, b)
 	return reduce(min2, nums)
 
-from z3 import *
-
+# piecewise expressions
 def piecewise(cases):
     """
     Implements a piecewise function in Z3.
@@ -67,7 +66,7 @@ def piecewise(cases):
         result = If(condition, value, result)
     
     return result)" +
-					format("{} = Solver\n\n", solver_name);
+					format("\n\n{} = Solver()\n", solver_name);
 
 	auto postamble = format("if {}.check() == sat:\n"
 							"\tprint(\"Cannot prove that the given algorithm has approximation bound {}.\")\n"
@@ -108,7 +107,7 @@ static tuple<string, string> gen_intersect_point(const string &a1,
 {
 	return {format("({} * {} - {} * {}) / ({} + {} - {} - {})", a1, b2, a2, b1,
 				   a1, b2, a2, b1),
-			format("((({} > {}) && ({} < {})) || (({} < {}) && ({} > {})))", a1, b1, a2, b2,
+			format("((({} > {}) & ({} < {})) | (({} < {}) & ({} > {})))", a1, b1, a2, b2,
 				   a1, b1, a2, b2)};
 }
 
@@ -205,17 +204,17 @@ string Z3::generator::gen_opt_mix_func() const
 				gen_intersect(format("vara{}", i), format("vara{}", j),
 							  format("varb{}", i), format("varb{}", j), num_players);
 			val += format(", {}", v);
-			condition += format(" {} &&", c);
+			condition += format(" {} &", c);
 		}
 		val += "])";
 		condition.pop_back();
 		condition.pop_back();
-		ret += format("({},{}),\n", val, condition);
+		ret += format("{},{}),\n", val, condition);
 	}
 	ret.pop_back();
 	ret.pop_back();
 	// add default value
-	ret += format("({}, True)])\n", gen_default_min(num_players));
+	ret += format(",({}, True)])\n", gen_default_min(num_players));
 	return ret;
 }
 
@@ -328,7 +327,7 @@ tuple<string, string> Z3::generator::gen_opt_mix_bounds() const
 			ret_decl_code += format("{}_f{}, {}_f{}", endpoint_a_alias, i + 1,
 									endpoint_b_alias, i + 1);
 		}
-		ret_decl_code += "];";
+		ret_decl_code += ")";
 		auto ret_decl_comment =
 			format("# {} -- {}\n", endpoint_a, endpoint_b);
 		maximum_length = std::max(maximum_length, ret_decl_code.size());
