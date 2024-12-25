@@ -10,3 +10,5 @@ compiler
 *.output
 results
 src/location.hh
+src/*.py
+src/*.m
