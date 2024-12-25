@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 		{
 			drv.print_ast = true;
 			drv.print_mathematica_code = true;
+			drv.print_Z3_code = true;
 		}
 		else if (argv[i] == std::string("-b")) // given the bound, run in proof mode
 		{

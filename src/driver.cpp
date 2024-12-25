@@ -1,8 +1,7 @@
 #include "driver.hpp"
 #include "legone_parser.hpp"
 
-driver::driver() : trace_parsing(false), trace_scanning(false), print_ast(false),
-				   mathematica_gen(nullptr), print_mathematica_code(false)
+driver::driver() : trace_parsing(false), trace_scanning(false), print_ast(false), mathematica_gen(nullptr), print_mathematica_code(false), Z3_gen(nullptr), bound_to_prove(1.0), print_Z3_code(false)
 {
 }
 
@@ -42,7 +41,7 @@ void driver::gen_mathematica_code()
 void driver::gen_Z3_code()
 {
 	// initialize Z3 generator
-	Z3_gen = make_unique<Z3::generator>(optimization_ast,bound_to_prove);
+	Z3_gen = make_unique<Z3::generator>(optimization_ast, bound_to_prove);
 	Z3_code = Z3_gen->gen_code(file);
 	std::fstream output_file(Z3_filename,
 							 std::ios::out | std::ios::trunc);
