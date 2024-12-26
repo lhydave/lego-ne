@@ -779,8 +779,13 @@ static auto gen_max_intersect(int i, int j, int num_player)
     auto if_cond = cal_or(std::move(if_cond_1), std::move(if_cond_2));
 
     vector<unique_ptr<func_def::exp_node>> max_list;
+    auto max_ij = std::max(i, j);
     for (auto k = 1; k <= num_player; k++)
     {
+        if (k == max_ij) // skip one of i,j term and only keep one i,j term.
+        {
+            continue;
+        }
         auto inter_pt_param = vector<unique_ptr<func_def::exp_node>>();
         inter_pt_param.emplace_back(as_var(format("vara{}", i)));
         inter_pt_param.emplace_back(as_var(format("vara{}", j)));
@@ -798,7 +803,15 @@ static auto gen_max_intersect(int i, int j, int num_player)
                                                            optimization_tree::intersect_val_func_name,
                                                            std::move(inter_val_param)));
     }
-    auto if_true = make_unique<func_def::exp_node>(func_def::exp_node::op_type::MAX, std::move(max_list));
+    unique_ptr<func_def::exp_node> if_true;
+    if (max_list.size() == 1)
+    {
+        if_true = std::move(max_list.at(0));
+    }
+    else
+    {
+        if_true = make_unique<func_def::exp_node>(func_def::exp_node::op_type::MAX, std::move(max_list));
+    }
     vector<unique_ptr<func_def::exp_node>> if_exp_param;
     if_exp_param.push_back(std::move(if_cond));
     if_exp_param.push_back(std::move(if_true));
