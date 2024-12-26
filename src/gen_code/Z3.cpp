@@ -6,31 +6,32 @@ Z3::generator::generator(const constraint::optimization_tree &tree, double bound
 {
 }
 
-string Z3::generator::gen_code(const string &file) const
+string Z3::generator::gen_code(string_view file) const
 {
-	auto alias_decl = gen_alias_and_param();
+	auto [alias_decl, alias_in_exist] = gen_alias_and_param();
 	auto opt_mix_func = gen_opt_mix_func();
 	auto constraints = gen_constraints();
 	auto [opt_mix_bounds_decl, opt_mix_bounds_in_fun_call] =
 		gen_opt_mix_bounds();
 
-	auto approx_bound_constraint = gen_approx_bound_constraint(opt_mix_bounds_in_fun_call);
+	auto approx_bound_constraint = gen_approx_bound_constraint(opt_mix_bounds_in_fun_call, alias_in_exist);
 
 	auto preamble = format("# Z3 code generated from {}\n", file) +
-					R"(from z3 import *
+					R"(from z3 import ArithRef, If, Solver, Real, sat, unsat, z3, Exists, And
+from functools import reduce
+
+z3.set_param("proof", True) # need to give the proof
 
 # predefined functions
 
 # find the maximum of a list of arithmetic expressions
 def max_list(nums: list[ArithRef]):
-	from functools import reduce
 	def max2(a, b):
 		return If(a > b, a, b)
 	return reduce(max2, nums)
 
 # find the minimum of a list of arithmetic expressions
 def min_list(nums: list[ArithRef]):
-	from functools import reduce
 	def min2(a, b):
 		return If(a < b, a, b)
 	return reduce(min2, nums)
@@ -66,13 +67,18 @@ def piecewise(cases):
         result = If(condition, value, result)
     
     return result)" +
-					format("\n\n{} = Solver()\n", solver_name);
+					format("\n\n{} = Solver()\n", solver_name) + format("\n{} = []\n", constraint_name);
 
-	auto postamble = format("if {}.check() == sat:\n"
-							"\tprint(\"Cannot prove that the given algorithm has approximation bound {}.\")\n"
+	auto postamble = format("check_ret = {}.check()\n"
+							"if check_ret == unsat:\n"
+							"\tprint(\"The given algorithm is proven to have approximation bound {}. The proof is as follows.\")\n"
+							"\tprint({}.proof())\n"
+							"elif check_ret == sat:\n"
+							"\tprint(\"Possible counterexample are found when proving approximation bound {} for the given algorithm.\")\n"
+							"\tprint({}.model())\n"
 							"else:\n"
-							"\tprint(\"The given algorithm is proven to have approximation bound {}.\")\n",
-							solver_name, bound_to_prove, bound_to_prove);
+							"\tprint(\"Z3 solver failed to work.\")\n",
+							solver_name, bound_to_prove, solver_name, bound_to_prove, solver_name);
 
 	return format("{}\n# name alias and parameters\n{}\n"
 				  "# constraint for optimal mixing operation\n{}\n{}\n"
@@ -82,30 +88,37 @@ def piecewise(cases):
 				  preamble, alias_decl, opt_mix_func, opt_mix_bounds_decl, constraints, approx_bound_constraint, postamble);
 }
 
-string Z3::generator::gen_alias_and_param() const
+tuple<string, string> Z3::generator::gen_alias_and_param() const
 {
-	string alias_decl;
+	string alias_decl, alias_in_exist;
+	alias_in_exist = "[";
 	for (const auto &[name, alias] : tree.name_alias)
 	{
 		for (auto i = 1; i <= num_players; i++)
 		{
-			alias_decl += format("{}_U{} = Real('{}_U{}') # U{}{}\n", alias, i, alias, i, i, name);
-			alias_decl += format("{}_f{} = Real('{}_f{}') # f{}{}\n", alias, i, alias, i, i, name);
+			alias_decl += format("{}_U{} = Real('{}_U{}')\t# U{}{}\n", alias, i, alias, i, i, name);
+			alias_decl += format("{}_f{} = Real('{}_f{}')\t# f{}{}\n", alias, i, alias, i, i, name);
+			alias_in_exist += format("{}_U{}, ", alias, i);
+			alias_in_exist += format("{}_f{}, ", alias, i);
 		}
 	}
 	for (const auto &param : tree.params)
 	{
 		alias_decl += format("{} = Real('{}') # param {}\n", param, param, param);
+		alias_in_exist += format("{}, ", param);
 	}
-	return alias_decl;
+	alias_in_exist.pop_back();
+	alias_in_exist.pop_back();
+	alias_in_exist.push_back(']');
+	return {alias_decl, alias_in_exist};
 }
 
 // generate the intersection point of two lines and a1-b1, a2-b2, and its
 // condition
-static tuple<string, string> gen_intersect_point(const string &a1,
-												 const string &a2, const string &b1, const string &b2)
+static tuple<string, string> gen_intersect_point(string_view a1,
+												 string_view a2, string_view b1, string_view b2)
 {
-	return {format("({} * {} - {} * {}) / ({} + {} - {} - {})", a1, b2, a2, b1,
+	return {format("({} - {}) / ({} + {} - {} - {})", a2, a1,
 				   a1, b2, a2, b1),
 			format("((({} > {}) & ({} < {})) | (({} < {}) & ({} > {})))", a1, b1, a2, b2,
 				   a1, b1, a2, b2)};
@@ -113,8 +126,8 @@ static tuple<string, string> gen_intersect_point(const string &a1,
 
 // generate the intersection of two lines and a1-b1, a2-b2 and evaluate at f
 // values
-static tuple<string, string> gen_intersect(const string &a1, const string &a2,
-										   const string &b1, const string &b2, int num_players)
+static tuple<string, string> gen_intersect(string_view a1, string_view a2,
+										   string_view b1, string_view b2, int num_players)
 {
 	auto [v, c] = gen_intersect_point(a1, a2, b1, b2);
 	string ret_v = "max_list([";
@@ -196,16 +209,18 @@ string Z3::generator::gen_opt_mix_func() const
 			continue;
 		ret += "\t\t(";
 		// generate the intersection of two lines from pair_set
-		auto val = format("min_list([{}", gen_default_min(num_players));
+		string val = "min_list([";
 		string condition;
 		for (auto [i, j] : pair_set)
 		{
 			auto [v, c] =
 				gen_intersect(format("vara{}", i), format("vara{}", j),
 							  format("varb{}", i), format("varb{}", j), num_players);
-			val += format(", {}", v);
+			val += format("{}, ", v);
 			condition += format(" {} &", c);
 		}
+		val.pop_back();
+		val.pop_back();
 		val += "])";
 		condition.pop_back();
 		condition.pop_back();
@@ -365,13 +380,18 @@ string Z3::generator::gen_constraints() const
 	}
 	for (size_t i = 0; i < constraints.size(); i++)
 	{
-		ret += format("{}.add({:<{}s})  # {}\n", solver_name, constraints[i],
+		ret += format("{}.append({:<{}s})  # {}\n", constraint_name, constraints[i],
 					  maximum_length, constraints_comments[i]);
 	}
 	return ret;
 }
 
-string Z3::generator::gen_approx_bound_constraint(const string &bound_exp) const
+string Z3::generator::gen_approx_bound_constraint(string_view bound_exp, string_view alias_in_exist) const
 {
-	return format("final_bound_exp = {}\n{}.add(final_bound_exp > {})\n", bound_exp, solver_name, bound_to_prove);
+	return format("final_bound_exp = {}\n"
+				  "{}.append(final_bound_exp > {})\n"
+				  "# the negation of the bound\n"
+				  "neg_theorem = Exists({}, And({}))\n"
+				  "{}.add(neg_theorem)\n",
+				  bound_exp, constraint_name, bound_to_prove, alias_in_exist, constraint_name, solver_name);
 }

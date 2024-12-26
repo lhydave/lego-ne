@@ -9,6 +9,7 @@
 #include <numeric>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -22,6 +23,7 @@ using std::format;
 using std::make_unique;
 using std::ostream;
 using std::string;
+using std::string_view;
 using std::tuple;
 using std::unique_ptr;
 using std::unordered_map;
@@ -37,17 +39,18 @@ public:
 	const double bound_to_prove;
 
 	generator(const constraint::optimization_tree &tree, double bound_to_prove);
-	string gen_code(const string &file) const;
+	string gen_code(string_view file) const;
 
 private:
-	string opt_mix_func_name = "optmix";
-	string solver_name = "solver";
-    string opt_mix_bound_prefix = "bound";
-	string gen_alias_and_param() const;
+	const string opt_mix_func_name = "optmix";
+	const string constraint_name = "constraints";
+	const string solver_name = "solver";
+    const string opt_mix_bound_prefix = "bound";
+	tuple<string, string> gen_alias_and_param() const;
 	string gen_opt_mix_func() const;
 	tuple<string, string> gen_opt_mix_bounds() const;
 	string gen_constraints() const;
-	string gen_approx_bound_constraint(const string& bound_exp) const;
+	string gen_approx_bound_constraint(string_view bound_exp, const string& alias_in_exist) const;
 };
 
 } // namespace Z3

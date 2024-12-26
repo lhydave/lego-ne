@@ -9,6 +9,7 @@
 #include <numeric>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -22,6 +23,7 @@ using std::format;
 using std::make_unique;
 using std::ostream;
 using std::string;
+using std::string_view;
 using std::tuple;
 using std::unique_ptr;
 using std::unordered_map;
@@ -36,13 +38,13 @@ public:
 	const size_t num_players;
 
 	generator(const constraint::optimization_tree &tree);
-	string gen_code(const string &file) const;
+	string gen_code(string_view file) const;
 
 private:
-	string opt_mix_func_name = "optmix";
-	string constraint_name = "constraints";
-    string opt_mix_bound_prefix = "bound";
-	string optimization_extra_param =
+	const string opt_mix_func_name = "optmix";
+	const string constraint_name = "constraints";
+    const string opt_mix_bound_prefix = "bound";
+	const string optimization_extra_param =
 		"AccuracyGoal -> 40, WorkingPrecision -> 60, Method -> "
 		"\"DifferentialEvolution\", MaxIterations -> 1000";
 	tuple<string, string> gen_alias_and_param() const;

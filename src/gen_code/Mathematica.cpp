@@ -7,7 +7,7 @@ mathematica::generator::generator(const constraint::optimization_tree &tree) :
 {
 }
 
-string mathematica::generator::gen_code(const string &file) const
+string mathematica::generator::gen_code(string_view file) const
 {
 	auto [alias_decl, alias_in_fun_call] = gen_alias_and_param();
 	auto opt_mix_func = gen_opt_mix_func();
@@ -49,10 +49,10 @@ tuple<string, string> mathematica::generator::gen_alias_and_param() const
 
 // generate the intersection point of two lines and a1-b1, a2-b2, and its
 // condition
-static tuple<string, string> gen_intersect_point(const string &a1,
-	const string &a2, const string &b1, const string &b2)
+static tuple<string, string> gen_intersect_point(string_view a1,
+	string_view a2, string_view b1, string_view b2)
 {
-	return {format("({} * {} - {} * {}) / ({} + {} - {} - {})", a1, b2, a2, b1,
+	return {format("({} - {}) / ({} + {} - {} - {})", a2, a1,
 				a1, b2, a2, b1),
 		format("(({} > {} && {} < {}) || ({} < {} && {} > {}))", a1, b1, a2, b2,
 			a1, b1, a2, b2)};
@@ -60,8 +60,8 @@ static tuple<string, string> gen_intersect_point(const string &a1,
 
 // generate the intersection of two lines and a1-b1, a2-b2 and evaluate at f
 // values
-static tuple<string, string> gen_intersect(const string &a1, const string &a2,
-	const string &b1, const string &b2, int num_players)
+static tuple<string, string> gen_intersect(string_view a1, string_view a2,
+	string_view b1, string_view b2, int num_players)
 {
 	auto [v, c] = gen_intersect_point(a1, a2, b1, b2);
 	string ret_v = "Max[";
@@ -142,16 +142,18 @@ string mathematica::generator::gen_opt_mix_func() const
 			continue;
 		ret += "\t{ ";
 		// generate the intersection of two lines from pair_set
-		auto val = format("Min[{}", gen_default_min(num_players));
+		string val = "Min[";
 		string condition;
 		for (auto [i, j] : pair_set)
 		{
 			auto [v, c] =
 				gen_intersect(format("vara{}", i), format("vara{}", j),
 					format("varb{}", i), format("varb{}", j), num_players);
-			val += format(", {}", v);
+			val += format("{}, ", v);
 			condition += format(" {} &&", c);
 		}
+		val.pop_back();
+		val.pop_back();
 		val += "]";
 		condition.pop_back();
 		condition.pop_back();
