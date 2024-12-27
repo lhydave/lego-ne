@@ -34,39 +34,7 @@ def max_list(nums: list[ArithRef]):
 def min_list(nums: list[ArithRef]):
 	def min2(a, b):
 		return If(a < b, a, b)
-	return reduce(min2, nums)
-
-# piecewise expressions
-def piecewise(cases):
-    """
-    Implements a piecewise function in Z3.
-    
-    Args:
-        cases: A list of (condition, value) pairs.
-              The last condition can be True to represent the default case.
-    
-    Returns:
-        A Z3 expression representing the piecewise function.
-        
-    Example:
-        x = Real('x')
-        f = piecewise([
-            (x * x,     x < 0),
-            (x,         x < 1),
-            (2 * x + 1, True)
-        ])
-    """
-    if not cases:
-        raise ValueError("cases cannot be empty")
-    
-    *cases_before_last, last_case = cases
-    result = last_case[0]  # start with the value of the last case
-    
-    # build If expressions from back to front
-    for value, condition in reversed(cases_before_last):
-        result = If(condition, value, result)
-    
-    return result)" +
+	return reduce(min2, nums))" +
                     format("\n\n{} = Solver()\n", solver_name) + format("\n{} = []\n", constraint_name);
 
     auto postamble = format(
@@ -204,20 +172,28 @@ static string gen_optmix_def(const unique_ptr<constraint::func_def::func_def> &f
         {
             continue;
         }
-        body_str += format("\t\tIf({},{},max_list([\n", exp_to_string(if_term->op_params[0]),
-                           exp_to_string(if_term->op_params[1]));
-        for (auto &max_ele : if_term->op_params[2]->op_params)
+        body_str +=
+            format("\t\tIf({}, {}, ", exp_to_string(if_term->op_params[0]), exp_to_string(if_term->op_params[1]));
+        auto &if_false = if_term->op_params[2];
+        if (if_false->op != op_type::MAX) // not a max list
         {
-            body_str += format("\t\t\t{},\n", exp_to_string(max_ele));
+            body_str += format("\n\t\t\t{}),\n", exp_to_string(if_false));
+        }
+        else // a max list
+        {
+            body_str += "max_list([\n";
+            for (auto &max_ele : if_term->op_params[2]->op_params)
+            {
+                body_str += format("\t\t\t{},\n", exp_to_string(max_ele));
+            }
+            body_str.pop_back();
+            body_str.pop_back();
+            body_str += "])),\n";
         }
         body_str.pop_back();
         body_str.pop_back();
-        body_str += "])),\n";
+        body_str += "])\n";
     }
-    body_str.pop_back();
-    body_str.pop_back();
-    body_str += "])\n";
-
     string params;
     for (auto &param : func_def_stmt->func_param)
     {
@@ -276,7 +252,7 @@ string Z3::generator::gen_opt_mix_bounds() const
     string ret;
     for (size_t i = 0; i < bounds.size(); i++)
     {
-        ret += format("{:<{}s}   # {}\n", bounds[i], max_code_len, comments[i]);
+        ret += format("{:<{}s}       # {}\n", bounds[i], max_code_len, comments[i]);
     }
     return ret;
 }
@@ -298,7 +274,7 @@ string Z3::generator::gen_constraints() const
     }
     for (size_t i = 0; i < constraints.size(); i++)
     {
-        ret += format("{}.append({:<{}s})  # {}\n", constraint_name, constraints[i], maximum_length,
+        ret += format("{}.append({:<{}s})       # {}\n", constraint_name, constraints[i], maximum_length,
                       constraints_comments[i]);
     }
     return ret;
@@ -310,5 +286,6 @@ string Z3::generator::gen_approx_bound_constraint(string_view alias_in_exist) co
                   "# the negation of the bound\n"
                   "neg_theorem = Exists({}, And({}))\n"
                   "{}.add(neg_theorem)\n",
-                  constraint_name, tree.opt_mix_bound_prefix, bound_to_prove, alias_in_exist, constraint_name, solver_name);
+                  constraint_name, tree.opt_mix_bound_prefix, bound_to_prove, alias_in_exist, constraint_name,
+                  solver_name);
 }

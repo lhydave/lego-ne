@@ -22,4 +22,4 @@ lexer: legone_lexer.ll
 clean:
 	rm -f compiler *.output *.out *.S *.m *.py
 	rm -f $(PARSER_NAME).cpp $(LEXER_NAME).cpp $(PARSER_NAME).hpp location.hh location.hpp
-	rm -f ../results
+	rm -rf ../results

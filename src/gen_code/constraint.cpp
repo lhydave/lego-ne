@@ -754,7 +754,7 @@ static auto cal_or(unique_ptr<func_def::exp_node> a, unique_ptr<func_def::exp_no
 // generate a function that computes the intersection point
 static auto gen_intersect_point()
 {
-    auto ret_body = cal_div(cal_sub(as_var("a2"), as_var("a1")),
+    auto ret_body = cal_div(cal_sub(as_var("a1"), as_var("a2")),
                             cal_sub(cal_sub(cal_add(as_var("a1"), as_var("b2")), as_var("a2")), as_var("b1")));
     return make_unique<func_def::func_def>(optimization_tree::intersect_point_func_name,
                                            vector<string>{"a1", "a2", "b1", "b2"}, std::move(ret_body));
@@ -764,18 +764,18 @@ static auto gen_intersect_point()
 static auto gen_intersect_val()
 {
     auto ret_body =
-        cal_add(cal_mul(as_var("a"), cal_sub(as_num(1), as_var("lambda"))), cal_mul(as_var("b"), as_var("lambda")));
+        cal_add(cal_mul(as_var("a"), cal_sub(as_num(1), as_var("lam"))), cal_mul(as_var("b"), as_var("lam")));
     return make_unique<func_def::func_def>(optimization_tree::intersect_val_func_name,
-                                           vector<string>{"a", "b", "lambda"}, std::move(ret_body));
+                                           vector<string>{"a", "b", "lam"}, std::move(ret_body));
 }
 
 // generate the maximum term of i,j
 static auto gen_max_intersect(int i, int j, int num_player)
 {
     auto if_cond_1 = cal_or(le(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
-                             ge(as_var(format("varb{}", j)), as_var(format("varb{}", i))));
+                             ge(as_var(format("varb{}", i)), as_var(format("varb{}", j))));
     auto if_cond_2 = cal_or(ge(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
-                             le(as_var(format("varb{}", j)), as_var(format("varb{}", i))));
+                             le(as_var(format("varb{}", i)), as_var(format("varb{}", j))));
     auto if_cond = cal_and(std::move(if_cond_1), std::move(if_cond_2));
 
     vector<unique_ptr<func_def::exp_node>> max_list;
@@ -968,8 +968,8 @@ void constraint::optimization_tree::gen_opt_mix_bounds()
         vector<unique_ptr<func_def::exp_node>> func_param;
         for (auto i = 1; i <= num_players; i++)
         {
-            func_param.emplace_back(as_var(format("{}_f{})", endpoint_a_alias, i)));
-            func_param.emplace_back(as_var(format("{}_f{})", endpoint_b_alias, i)));
+            func_param.emplace_back(as_var(format("{}_f{}", endpoint_a_alias, i)));
+            func_param.emplace_back(as_var(format("{}_f{}", endpoint_b_alias, i)));
         }
         auto rval = make_unique<func_def::exp_node>(func_def::exp_node::op_type::FUNC_CALL, opt_mix_func_name,
                                                     std::move(func_param));

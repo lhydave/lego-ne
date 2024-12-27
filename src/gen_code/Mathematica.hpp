@@ -41,16 +41,15 @@ public:
 	string gen_code(string_view file) const;
 
 private:
-	const string opt_mix_func_name = "optmix";
-	const string constraint_name = "constraints";
-    const string opt_mix_bound_prefix = "bound";
-	const string optimization_extra_param =
+	static constexpr string_view constraint_name = "constraints";
+	static constexpr string_view optimization_extra_param =
 		"AccuracyGoal -> 40, WorkingPrecision -> 60, Method -> "
 		"\"DifferentialEvolution\", MaxIterations -> 1000";
 	tuple<string, string> gen_alias_and_param() const;
 	string gen_opt_mix_func() const;
-	tuple<string, string> gen_opt_mix_bounds() const;
+	string gen_opt_mix_bounds() const;
 	string gen_constraints() const;
+	string gen_approx_bound_optimization(string_view vars) const;
 };
 
 } // namespace mathematica
