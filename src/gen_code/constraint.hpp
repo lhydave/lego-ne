@@ -143,20 +143,19 @@ class exp_node
   public:
     enum class op_type
     {
+        NUM,
+        VAR,
         ADD,
         SUB,
         MUL,
         DIV,
         AND,
         OR,
+        LE,
+        GE,
         IF,
-        EQ,
-        L_THAN,
-        G_THAN,
         MAX,
         MIN,
-        NUM,
-        VAR,
         FUNC_CALL
     };
     op_type op;

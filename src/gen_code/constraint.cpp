@@ -719,20 +719,20 @@ static auto cal_mul(unique_ptr<func_def::exp_node> a, unique_ptr<func_def::exp_n
     return make_unique<func_def::exp_node>(func_def::exp_node::op_type::MUL, std::move(params));
 }
 
-static auto l_than(unique_ptr<func_def::exp_node> a, unique_ptr<func_def::exp_node> b)
+static auto le(unique_ptr<func_def::exp_node> a, unique_ptr<func_def::exp_node> b)
 {
     auto params = vector<std::unique_ptr<func_def::exp_node>>();
     params.push_back(std::move(a));
     params.push_back(std::move(b));
-    return make_unique<func_def::exp_node>(func_def::exp_node::op_type::L_THAN, std::move(params));
+    return make_unique<func_def::exp_node>(func_def::exp_node::op_type::LE, std::move(params));
 }
 
-static auto g_than(unique_ptr<func_def::exp_node> a, unique_ptr<func_def::exp_node> b)
+static auto ge(unique_ptr<func_def::exp_node> a, unique_ptr<func_def::exp_node> b)
 {
     auto params = vector<std::unique_ptr<func_def::exp_node>>();
     params.push_back(std::move(a));
     params.push_back(std::move(b));
-    return make_unique<func_def::exp_node>(func_def::exp_node::op_type::G_THAN, std::move(params));
+    return make_unique<func_def::exp_node>(func_def::exp_node::op_type::GE, std::move(params));
 }
 
 static auto cal_and(unique_ptr<func_def::exp_node> a, unique_ptr<func_def::exp_node> b)
@@ -772,11 +772,11 @@ static auto gen_intersect_val()
 // generate the maximum term of i,j
 static auto gen_max_intersect(int i, int j, int num_player)
 {
-    auto if_cond_1 = cal_and(g_than(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
-                             l_than(as_var(format("varb{}", j)), as_var(format("varb{}", i))));
-    auto if_cond_2 = cal_and(l_than(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
-                             g_than(as_var(format("varb{}", j)), as_var(format("varb{}", i))));
-    auto if_cond = cal_or(std::move(if_cond_1), std::move(if_cond_2));
+    auto if_cond_1 = cal_or(le(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
+                             ge(as_var(format("varb{}", j)), as_var(format("varb{}", i))));
+    auto if_cond_2 = cal_or(ge(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
+                             le(as_var(format("varb{}", j)), as_var(format("varb{}", i))));
+    auto if_cond = cal_and(std::move(if_cond_1), std::move(if_cond_2));
 
     vector<unique_ptr<func_def::exp_node>> max_list;
     auto max_ij = std::max(i, j);
@@ -803,19 +803,19 @@ static auto gen_max_intersect(int i, int j, int num_player)
                                                            optimization_tree::intersect_val_func_name,
                                                            std::move(inter_val_param)));
     }
-    unique_ptr<func_def::exp_node> if_true;
+    unique_ptr<func_def::exp_node> if_false;
     if (max_list.size() == 1)
     {
-        if_true = std::move(max_list.at(0));
+        if_false = std::move(max_list.at(0));
     }
     else
     {
-        if_true = make_unique<func_def::exp_node>(func_def::exp_node::op_type::MAX, std::move(max_list));
+        if_false = make_unique<func_def::exp_node>(func_def::exp_node::op_type::MAX, std::move(max_list));
     }
     vector<unique_ptr<func_def::exp_node>> if_exp_param;
     if_exp_param.push_back(std::move(if_cond));
-    if_exp_param.push_back(std::move(if_true));
     if_exp_param.emplace_back(as_num(1));
+    if_exp_param.push_back(std::move(if_false));
     return make_unique<func_def::exp_node>(func_def::exp_node::op_type::IF, std::move(if_exp_param));
 }
 
