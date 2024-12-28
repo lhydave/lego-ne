@@ -153,10 +153,10 @@ static string gen_optmix_def(const unique_ptr<constraint::func_def::func_def> &f
             body_str.pop_back();
             body_str += "]],\n";
         }
-        body_str.pop_back();
-        body_str.pop_back();
-        body_str += "]\n";
     }
+    body_str.pop_back();
+    body_str.pop_back();
+    body_str += "]\n";
     string params;
     for (auto &param : func_def_stmt->func_param)
     {
@@ -215,7 +215,7 @@ string mathematica::generator::gen_opt_mix_bounds() const
     string ret;
     for (size_t i = 0; i < bounds.size(); i++)
     {
-        ret += format("{:<{}s}       (* {} *)\n", bounds[i], max_code_len, comments[i]);
+        ret += format("{:<{}s}  (* {} *)\n", bounds[i], max_code_len, comments[i]);
     }
     return ret;
 }
@@ -240,11 +240,11 @@ string mathematica::generator::gen_constraints() const
     {
         if (i == constraints.size() - 1)
         {
-            ret += format("\t{:<{}s}      (* {} *)\n}};\n", constraints[i], maximum_length, constraints_comments[i]);
+            ret += format("\t{:<{}s}  (* {} *)\n}};\n", constraints[i], maximum_length, constraints_comments[i]);
         }
         else
         {
-            ret += format("\t{:<{}s}      (* {} *)\n", constraints[i] + ",", maximum_length, constraints_comments[i]);
+            ret += format("\t{:<{}s}  (* {} *)\n", constraints[i] + ",", maximum_length, constraints_comments[i]);
         }
     }
     return ret;

@@ -40,14 +40,15 @@ def min_list(nums: list[ArithRef]):
     auto postamble = format(
         "check_ret = {}.check()\n"
         "if check_ret == unsat:\n"
-        "\tprint(\"The given algorithm is proven to have approximation bound {}. The proof is as follows.\")\n"
+        "\tprint(f\"The given algorithm is proven to have approximation bound {{{}}}. The proof is as follows.\")\n"
         "\tprint({}.proof())\n"
         "elif check_ret == sat:\n"
-        "\tprint(\"Possible counterexample are found when proving approximation bound {} for the given algorithm.\")\n"
+        "\tprint(f\"Possible counterexample are found when proving approximation bound {{{}}} for the given "
+        "algorithm.\")\n"
         "\tprint({}.model())\n"
         "else:\n"
         "\tprint(\"Z3 solver failed to work.\")\n",
-        solver_name, bound_to_prove, solver_name, bound_to_prove, solver_name);
+        solver_name, bound_name, solver_name, bound_name, solver_name);
 
     return format("{}\n# name alias and parameters\n{}\n"
                   "# constraint for optimal mixing operation\n{}\n{}\n"
@@ -190,10 +191,10 @@ static string gen_optmix_def(const unique_ptr<constraint::func_def::func_def> &f
             body_str.pop_back();
             body_str += "])),\n";
         }
-        body_str.pop_back();
-        body_str.pop_back();
-        body_str += "])\n";
     }
+    body_str.pop_back();
+    body_str.pop_back();
+    body_str += "])\n";
     string params;
     for (auto &param : func_def_stmt->func_param)
     {
@@ -252,7 +253,7 @@ string Z3::generator::gen_opt_mix_bounds() const
     string ret;
     for (size_t i = 0; i < bounds.size(); i++)
     {
-        ret += format("{:<{}s}       # {}\n", bounds[i], max_code_len, comments[i]);
+        ret += format("{:<{}s} # {}\n", bounds[i], max_code_len, comments[i]);
     }
     return ret;
 }
@@ -274,7 +275,7 @@ string Z3::generator::gen_constraints() const
     }
     for (size_t i = 0; i < constraints.size(); i++)
     {
-        ret += format("{}.append({:<{}s})       # {}\n", constraint_name, constraints[i], maximum_length,
+        ret += format("{}.append({:<{}s}) # {}\n", constraint_name, constraints[i], maximum_length,
                       constraints_comments[i]);
     }
     return ret;
@@ -282,10 +283,11 @@ string Z3::generator::gen_constraints() const
 
 string Z3::generator::gen_approx_bound_constraint(string_view alias_in_exist) const
 {
-    return format("{}.append({} > {})\n"
+    return format("{} = {}\n"
+                  "{}.append({} > {})\n"
                   "# the negation of the bound\n"
                   "neg_theorem = Exists({}, And({}))\n"
                   "{}.add(neg_theorem)\n",
-                  constraint_name, tree.opt_mix_bound_prefix, bound_to_prove, alias_in_exist, constraint_name,
-                  solver_name);
+                  bound_name, bound_to_prove, constraint_name, tree.opt_mix_bound_prefix, bound_name, alias_in_exist,
+                  constraint_name, solver_name);
 }

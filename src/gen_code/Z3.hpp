@@ -44,6 +44,7 @@ public:
 private:
 	static constexpr string_view constraint_name = "constraints";
 	static constexpr string_view solver_name = "solver";
+	static constexpr string_view bound_name = "b";
 	tuple<string, string> gen_alias_and_param() const;
 	string gen_opt_mix_func() const;
 	string gen_opt_mix_bounds() const;
