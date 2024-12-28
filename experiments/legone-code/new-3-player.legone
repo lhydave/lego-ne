@@ -43,7 +43,7 @@ def StationaryPoint3(s3:p3) -> List[p1, p2, p1, p2]:
         f1(xs,ys,s3)==f2(xs,ys,s3),
         forall(x:p1).(U1(x,ys,s3)<=U1(w,ys,s3)),
         forall(y:p2).(U2(xs,y,s3)<=U2(xs,z,s3)),
-        forall(x:p1).forall(y:p2).(f1(x,y,s3)<=rho3*(U1(w,y,s3)-U1(x,ys,s3)-U1(xs,y,s3)+U1(xs,ys,s3))+(1-rho3)*(U2(x,z,s3)-U2(xs,y,s3)-U2(x,ys,s3)+U2(xs,ys,s3)))
+        forall(x:p1).forall(y:p2).(f1(xs,ys,s3)<=rho3*(U1(w,y,s3)-U1(x,ys,s3)-U1(xs,y,s3)+U1(xs,ys,s3))+(1-rho3)*(U2(x,z,s3)-U2(xs,y,s3)-U2(x,ys,s3)+U2(xs,ys,s3)))
     ]
     return xs, ys, w, z
 
@@ -56,7 +56,7 @@ def StationaryPoint1(s1:p1) -> List[p2, p3, p2, p3]:
         f2(s1,xs,ys)==f3(s1,xs,ys),
         forall(x:p2).(U2(s1,x,ys)<=U2(s1,w,ys)),
         forall(y:p3).(U3(s1,xs,y)<=U3(s1,xs,z)),
-        forall(x:p2).forall(y:p3).(f2(s1,x,y)<=rho1*(U2(s1,w,y)-U2(s1,x,ys)-U2(s1,xs,y)+U2(s1,xs,ys))+(1-rho1)*(U3(s1,x,z)-U3(s1,xs,y)-U3(s1,x,ys)+U3(s1,xs,ys)))
+        forall(x:p2).forall(y:p3).(f2(s1,xs,ys)<=rho1*(U2(s1,w,y)-U2(s1,x,ys)-U2(s1,xs,y)+U2(s1,xs,ys))+(1-rho1)*(U3(s1,x,z)-U3(s1,xs,y)-U3(s1,x,ys)+U3(s1,xs,ys)))
     ]
     return xs, ys, w, z
 
