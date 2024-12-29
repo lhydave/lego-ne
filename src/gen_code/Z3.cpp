@@ -63,19 +63,39 @@ tuple<string, string> Z3::generator::gen_alias_and_param() const
 {
     string alias_decl, alias_in_exist;
     alias_in_exist = "[";
+    size_t max_length = 0;
+    for (const auto &[_, alias] : tree.name_alias)
+    {
+        max_length = std::max(max_length, format("{}_f{}", alias, num_players).length());
+    }
+    for (const auto &param : tree.params)
+    {
+        max_length = std::max(max_length, param.length());
+    }
     for (const auto &[name, alias] : tree.name_alias)
     {
         for (auto i = 1; i <= num_players; i++)
         {
-            alias_decl += format("{}_U{} = Real('{}_U{}')\t# U{}{}\n", alias, i, alias, i, i, name);
-            alias_decl += format("{}_f{} = Real('{}_f{}')\t# f{}{}\n", alias, i, alias, i, i, name);
+            alias_decl += format("{}_U{:<{}} = Real('{}_U{}')\t{:<{}}# U{}{}\n", alias, i,
+                                 max_length - alias.length() - 2, // Left part before =
+                                 alias, i,                        // Middle part
+                                 " ", max_length - alias.length() - 2 - std::to_string(i).length(), // Padding before #
+                                 i, name);                                                          // Comment part
+            alias_decl += format("{}_f{:<{}} = Real('{}_f{}')\t{:<{}}# f{}{}\n", alias, i,
+                                 max_length - alias.length() - 2, // Left part before =
+                                 alias, i,                        // Middle part
+                                 " ", max_length - alias.length() - 2 - std::to_string(i).length(), // Padding before #
+                                 i, name);                                                          // Comment part
             alias_in_exist += format("{}_U{}, ", alias, i);
             alias_in_exist += format("{}_f{}, ", alias, i);
         }
     }
     for (const auto &param : tree.params)
     {
-        alias_decl += format("{} = Real('{}') # param {}\n", param, param, param);
+        alias_decl += format("{:<{}} = Real('{}')\t{:<{}}# param {}\n", param, max_length, // Left part before =
+                             param,                                                        // Middle part
+                             " ", max_length - param.length(),                             // Padding before #
+                             param);                                                       // Comment part
         alias_in_exist += format("{}, ", param);
     }
     alias_in_exist.pop_back();
@@ -263,20 +283,17 @@ string Z3::generator::gen_constraints() const
     auto ret = string();
     vector<string> constraints;
     vector<string> constraints_comments;
-    size_t maximum_length = 0;
     unordered_map<string, string> empty_alias;
     for (const auto &constraint : tree.constraints)
     {
         auto constraint_str = constraint->to_string(tree.name_alias);
         auto comment_str = constraint->to_string(empty_alias);
-        maximum_length = std::max(maximum_length, constraint_str.size());
         constraints.push_back(constraint_str);
         constraints_comments.push_back(comment_str);
     }
     for (size_t i = 0; i < constraints.size(); i++)
     {
-        ret += format("{}.append({:<{}s}) # {}\n", constraint_name, constraints[i], maximum_length,
-                      constraints_comments[i]);
+        ret += format("# {}\n{}.append({})\n", constraints_comments[i], constraint_name, constraints[i]);
     }
     return ret;
 }

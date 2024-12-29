@@ -26,19 +26,30 @@ string mathematica::generator::gen_code(string_view file) const
 tuple<string, string> mathematica::generator::gen_alias_and_param() const
 {
     string alias_decl, vars;
+    size_t max_length = 0;
+    for (const auto &[_, alias] : tree.name_alias)
+    {
+        max_length = std::max(max_length, format("{}_f{}", alias, num_players).length());
+    }
+    for (const auto &param : tree.params)
+    {
+        max_length = std::max(max_length, param.length());
+    }
     for (const auto &[name, alias] : tree.name_alias)
     {
         for (auto i = 1; i <= num_players; i++)
         {
-            alias_decl += format("{}_U{}; \t(* U{}{} *)\n", alias, i, i, name);
-            alias_decl += format("{}_f{}; \t(* f{}{} *)\n", alias, i, i, name);
+            alias_decl += format("{}_U{};\t{:<{}}(* U{}{} *)\n", alias, i, " ",
+                                 max_length - alias.length() - 2 - std::to_string(i).length(), i, name);
+            alias_decl += format("{}_f{};\t{:<{}}(* f{}{} *)\n", alias, i, " ",
+                                 max_length - alias.length() - 2 - std::to_string(i).length(), i, name);
             vars += format("{}_U{}, ", alias, i);
             vars += format("{}_f{}, ", alias, i);
         }
     }
     for (const auto &param : tree.params)
     {
-        alias_decl += format("{}; \t(* param {} *)\n", param, param, param);
+        alias_decl += format("{};\t{:<{}}(* param {} *)\n", param, " ", max_length - param.length(), param);
         vars += format("{}, ", param);
     }
     vars.pop_back();
@@ -225,26 +236,23 @@ string mathematica::generator::gen_constraints() const
     auto ret = format("{} = {{\n", constraint_name);
     vector<string> constraints;
     vector<string> constraints_comments;
-    size_t maximum_length = 0;
     unordered_map<string, string> empty_alias;
     for (const auto &constraint : tree.constraints)
     {
         auto constraint_str = constraint->to_string(tree.name_alias);
         auto comment_str = constraint->to_string(empty_alias);
-        maximum_length = std::max(maximum_length, constraint_str.size());
         constraints.push_back(constraint_str);
         constraints_comments.push_back(comment_str);
     }
-    maximum_length += 1;
     for (size_t i = 0; i < constraints.size(); i++)
     {
         if (i == constraints.size() - 1)
         {
-            ret += format("\t{:<{}s}  (* {} *)\n}};\n", constraints[i], maximum_length, constraints_comments[i]);
+            ret += format("\t(* {} *)\n\t{}\n}};\n", constraints_comments[i], constraints[i]);
         }
         else
         {
-            ret += format("\t{:<{}s}  (* {} *)\n", constraints[i] + ",", maximum_length, constraints_comments[i]);
+            ret += format("\t(* {} *)\n\t{},\n", constraints_comments[i], constraints[i]);
         }
     }
     return ret;
