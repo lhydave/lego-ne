@@ -1,4 +1,4 @@
-# Lego NE - Automating Approximate NE Algorithm Analysis
+# LegoNE - Automating Approximate NE Algorithm Analysis
 
 ## Overview
 
