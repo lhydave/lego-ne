@@ -3,16 +3,17 @@ num_players = 3
 def Random3() -> p3:
     description = "Random strategy for player 3"
     extra_params = []
-    constraints = []
+    constraints = [
+        forall(x1:p1).forall(x2:p1).forall(y:p2).forall(z:p3).(f1(x1,y,z)-f1(x2,y,z)==U1(x2,y,z)-U1(x1,y,z)), # missing inherent constraints
+        forall(x:p1).forall(y1:p2).forall(y2:p2).forall(z:p3).(f2(x,y1,z)-f2(x,y2,z)==U2(x,y2,z)-U2(x,y1,z)), # missing inherent constraints
+        forall(x:p1).forall(y:p2).forall(z1:p3).forall(z2:p3).(f3(x,y,z1)-f3(x,y,z2)==U3(x,y,z2)-U3(x,y,z1)), # missing inherent constraints
+    ]
     return x3
 
 def BestResponse1(s2: p2, s3: p3) -> p1:
     description = "Best response for player 1 against (s2, s3)"
     extra_params = []
     constraints = [
-        # forall(x1:p1).forall(x2:p1).forall(y:p2).forall(z:p3).(f1(x1,y,z)-f1(x2,y,z)==U1(x2,y,z)-U1(x1,y,z)), # missing inherent constraints
-        # forall(x:p1).forall(y1:p2).forall(y2:p2).forall(z:p3).(f2(x,y1,z)-f2(x,y2,z)==U2(x,y2,z)-U2(x,y1,z)), # missing inherent constraints
-        # forall(x:p1).forall(y:p2).forall(z1:p3).forall(z2:p3).(f3(x,y,z1)-f3(x,y,z2)==U3(x,y,z2)-U3(x,y,z1)), # missing inherent constraints
         forall(x:p1).(U1(x,s2,s3)<=U1(x1,s2,s3))
     ]
     return x1
@@ -37,7 +38,7 @@ def StationaryPoint3(s3:p3) -> List[p1, p2, p1, p2]:
     description = "Compute the stationary point and its dual solution of players 1 and 2 when player 3 plays s3"
     extra_params = ["rho3"]
     constraints = [
-        f1(xs,ys,s3)>=f2(xs,ys,s3), # branch condition
+        f1(w,z,s3)>=f2(w,z,s3), # branch condition
         0<=rho3,
         rho3<=1,
         f1(xs,ys,s3)==f2(xs,ys,s3),

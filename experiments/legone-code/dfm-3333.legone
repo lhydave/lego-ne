@@ -22,9 +22,7 @@ def StationaryPoint() -> List[p1, p2, p1, p2]:
     description = "Compute the stationary point and its dual solution"
     extra_params = ["rho"]
     constraints = [
-        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing inherent constraints
-        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing inherent constraints
-        f1(xs,ys)>=f2(xs,ys), # branch condition
+        f1(w,z)>=f2(w,z), # branch condition
         0<=rho,
         rho<=1,
         f1(xs,ys)==f2(xs,ys),
@@ -46,7 +44,8 @@ def EqMix2(y1: p2, y2: p2) -> p2:
     description = "Equal mixture of two strategies for player 2"
     extra_params = []
     constraints = [
-        forall(u:Payoff).forall(x:p1).(u(x,y1)+u(x,y2)==2*u(x,y))
+        forall(u:Payoff).forall(x:p1).(u(x,y1)+u(x,y2)==2*u(x,y)),
+        forall(x:p1).(f1(x,y1)+f1(x,y2)>=2*f1(x,y)),
     ]
     return y
 
