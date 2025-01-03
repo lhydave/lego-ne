@@ -145,15 +145,15 @@ public:
 
 class num_exp_node : public exp_node {
 public:
-	int val;
-	num_exp_node(int val);
+	double val;
+	num_exp_node(double val);
 	void display(ostream &os) const override;
 	void walk(bool print = false) const override;
 };
 
 class op_exp_node : public exp_node {
 public:
-	enum class op_type { ADD, SUB, MUL };
+	enum class op_type { ADD, SUB, MUL, DIV };
 	op_type o_type;
 	unique_ptr<exp_node> left;
 	unique_ptr<exp_node> right;

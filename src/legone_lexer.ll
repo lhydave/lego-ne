@@ -23,6 +23,7 @@
 
 
 id              [_a-zA-Z][a-zA-Z_0-9]*
+float           [0-9]+\.[0-9]+
 int             [0-9]+
 comment         #.*(\n|\r\n)
 indent_at_start ^[ \t\f]*
@@ -49,6 +50,7 @@ string          \"([^\\\"]|\\.)*\"
 "-"               return yy::parser::make_MINUS(loc);
 "+"               return yy::parser::make_PLUS(loc);
 "*"               return yy::parser::make_STAR(loc);
+"/"               return yy::parser::make_DIV(loc);
 "("               { return yy::parser::make_LPAREN(loc); }
 ")."              { return yy::parser::make_RPAREN_DOT(loc); }
 ")"               { return yy::parser::make_RPAREN(loc); }
@@ -72,6 +74,7 @@ string          \"([^\\\"]|\\.)*\"
 "num_players"     return yy::parser::make_NUM_PLAYERS(loc);
 
 {int}             return make_NUMBER(yytext, loc);
+{float}           return make_NUMBER(yytext, loc);
 {player_type}     return make_PLAYER_T(yytext, loc);
 {id}              return yy::parser::make_IDENTIFIER(yytext, loc);
 {string}          return make_STRING(yytext, loc);
@@ -86,10 +89,8 @@ string          \"([^\\\"]|\\.)*\"
 yy::parser::symbol_type make_NUMBER(const std::string &s, const yy::parser::location_type& loc)
 {
   errno = 0;
-  long n = strtol(s.c_str(), NULL, 10);
-  if (not (INT_MIN <= n and n <= INT_MAX and errno != ERANGE))
-    throw yy::parser::syntax_error(loc, "integer is out of range: " + s);
-  return yy::parser::make_NUMBER(static_cast<int>(n), loc);
+  auto n = std::stod(s);
+  return yy::parser::make_NUMBER(static_cast<double>(n), loc);
 }
 
 yy::parser::symbol_type make_PLAYER_T(const std::string &s, const yy::parser::location_type& loc)

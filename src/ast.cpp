@@ -17,7 +17,7 @@ void legone::ast_root::walk(bool print) const
 	}
 }
 
-legone::num_exp_node::num_exp_node(int val) : val(val)
+legone::num_exp_node::num_exp_node(double val) : val(val)
 {
 	type = exp_type::NUM;
 }
@@ -52,6 +52,7 @@ void legone::op_exp_node::display(ostream &os) const
 	case op_type::ADD: op_str = "+"; break;
 	case op_type::SUB: op_str = "-"; break;
 	case op_type::MUL: op_str = "*"; break;
+	case op_type::DIV: op_str = "/"; break;
 	default: throw std::runtime_error("Invalid op_type");
 	}
 	auto s = format("\t\t\texp_node: op: {}", op_str);

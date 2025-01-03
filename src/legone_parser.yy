@@ -31,6 +31,7 @@
   MINUS        "-"
   PLUS         "+"
   STAR         "*"
+  DIV          "/"
   LPAREN       "("
   RPAREN       ")"
   RPAREN_DOT   ")."
@@ -262,6 +263,9 @@ add_exp:
 mul_exp:
   mul_exp "*" primary_exp { 
     $$ = make_unique<op_exp_node>(op_exp_node::op_type::MUL, std::move($1), std::move($3)); 
+  }
+  | mul_exp "/" primary_exp { 
+    $$ = make_unique<op_exp_node>(op_exp_node::op_type::DIV, std::move($1), std::move($3)); 
   }
   | primary_exp { 
     $$ = std::move($1); 
