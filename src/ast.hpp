@@ -69,7 +69,7 @@ struct SymTab
     using TabType = vector<unordered_map<string, Type>>; // stacked tables
     TabType tab;
     SymTab() = default;
-    void def_symbol(const string &symbol, const Type &sym_type);
+    void def_symbol(const string &symbol, const Type &sym_type, bool check_replicate = true);
     optional<Type> get_type(const string &symbol) const;
     void increase_scope();
     void decrease_scope();

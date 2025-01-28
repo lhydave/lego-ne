@@ -295,7 +295,7 @@ void legone::constraint_node::walk(SymTab &sym_tab, bool print) const
         }
         return ret;
     };
-
+    sym_tab.increase_scope();
     // def quantifier symbols
     for (auto &quantifier : quantifiers)
     {
@@ -360,6 +360,7 @@ void legone::constraint_node::walk(SymTab &sym_tab, bool print) const
     {
         std::cout << "\tconstraint end" << std::endl;
     }
+    sym_tab.decrease_scope();
 }
 
 legone::constraint_node::comp_op legone::constraint_node::str2comp_op(const string &op)
@@ -618,14 +619,10 @@ void legone::operation_node::walk(SymTab &sym_tab, bool print) const
 
     sym_tab.increase_scope();
 
-    // def the formal parameters and returns
+    // def the formal parameters
     for (auto &[param_name, param_type] : fparams)
     {
         sym_tab.def_symbol(param_name, print_type(param_type));
-    }
-    for (auto &[ret_name, ret_type] : rets)
-    {
-        sym_tab.def_symbol(ret_name, print_type(ret_type));
     }
 
     // def the extra parameter symbols
@@ -633,6 +630,13 @@ void legone::operation_node::walk(SymTab &sym_tab, bool print) const
     {
         sym_tab.def_symbol(extra_param, "param");
     }
+
+    // def return (could be replicate)
+    for (auto &[ret_name, ret_type] : rets)
+    {
+        sym_tab.def_symbol(ret_name, print_type(ret_type));
+    }
+
     if (print)
     {
         std::cout << "operation begin: " << std::endl;
@@ -742,19 +746,27 @@ void legone::param_exp_node::walk(SymTab &sym_tab, bool print) const
     }
 }
 
-void legone::SymTab::def_symbol(const string &symbol, const Type &sym_type)
+void legone::SymTab::def_symbol(const string &symbol, const Type &sym_type, bool check_replicate)
 {
     auto &scope = *tab.rbegin();
-    if (scope.contains(symbol))
+    if (scope.contains(symbol) and check_replicate)
     {
         throw std::runtime_error(format("cannot define symbol {}: it was already defined.", symbol));
+    }
+    if (scope.contains(symbol))
+    {
+        if (scope[symbol] != sym_type)
+        {
+            throw std::runtime_error(
+                format("cannot define symbol {} as a return: it was mistyped with its definition.", symbol));
+        }
     }
     scope[symbol] = sym_type;
 }
 
 optional<legone::Type> legone::SymTab::get_type(const string &symbol) const
 {
-    for (auto scope = tab.rbegin(); scope != tab.rend(); scope--)
+    for (auto scope = tab.rbegin(); scope != tab.rend(); scope++)
     {
         if (not scope->contains(symbol))
         {
