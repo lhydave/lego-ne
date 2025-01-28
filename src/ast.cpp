@@ -9,6 +9,7 @@ void legone::ast_root::walk(SymTab &sym_tab, bool print) const
 
     sym_tab.increase_scope();
     sym_tab.def_symbol("algo", "algo");
+    sym_tab.def_symbol("__num_player__", std::to_string(num_players)); // a hack function for number of players
 
     // add default Ui and fi
     for (auto i = 1; i <= num_players; i++)
@@ -222,7 +223,6 @@ void legone::algo_node::walk(SymTab &sym_tab, bool print) const
     {
         construct->walk(sym_tab, print);
     }
-    sym_tab.decrease_scope();
     if (print)
     {
         if (rets.size() > 0)
@@ -235,6 +235,39 @@ void legone::algo_node::walk(SymTab &sym_tab, bool print) const
             std::cout << std::endl << "algo end" << std::endl;
         }
     }
+    // actually, currently legone only support no-return algorithm.
+    // Thus, we need to check if every player has a return strategy
+    auto num_players = std::stoi(std::get<string>(sym_tab.get_type("__num_player__").value()));
+    unordered_set<BasicType> ret_type;
+    for (auto i = 1; i <= num_players; i++)
+    {
+        ret_type.insert(format("p{}", i));
+    }
+    for (auto &[sym, sym_type] : *sym_tab.tab.rbegin())
+    {
+        string type_expose;
+        try
+        {
+            type_expose = std::get<string>(sym_type);
+        }
+        catch (const std::bad_variant_access &e)
+        {
+        }
+        ret_type.erase(type_expose);
+    }
+    if (not ret_type.empty())
+    {
+        string s =
+            "error occurs when constructing the return of function algo: missing strategies constructed for players ";
+        for (auto &i : ret_type)
+        {
+            s += i.substr(1, i.size() - 1) + ", ";
+        }
+        s.pop_back();
+        s.pop_back();
+        throw std::runtime_error(s);
+    }
+    sym_tab.decrease_scope();
 }
 
 legone::constraint_node::constraint_node(vector<tuple<string, basic_type>> quantifiers, unique_ptr<exp_node> left_exp,
