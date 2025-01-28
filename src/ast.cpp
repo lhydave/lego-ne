@@ -1,6 +1,6 @@
 #include "ast.hpp"
 
-void legone::ast_root::walk(SymTab &sym_tab, bool print) const
+void legone::ast_root::walk(SymTab &sym_tab, bool print)
 {
     if (print)
     {
@@ -41,7 +41,7 @@ void legone::num_exp_node::display(ostream &os) const
     os << s << endl;
 }
 
-void legone::num_exp_node::walk(SymTab &sym_tab, bool print) const
+void legone::num_exp_node::walk(SymTab &sym_tab, bool print)
 {
     if (print)
     {
@@ -79,7 +79,7 @@ void legone::op_exp_node::display(ostream &os) const
     os << s << endl;
 }
 
-void legone::op_exp_node::walk(SymTab &sym_tab, bool print) const
+void legone::op_exp_node::walk(SymTab &sym_tab, bool print)
 {
     if (print)
     {
@@ -108,7 +108,7 @@ void legone::payoff_exp_node::display(ostream &os) const
     os << s << endl;
 }
 
-void legone::payoff_exp_node::walk(SymTab &sym_tab, bool print) const
+void legone::payoff_exp_node::walk(SymTab &sym_tab, bool print)
 {
     auto func_type = sym_tab.get_type(payoff_name);
     auto s = format("cannot resolve term {}(", payoff_name);
@@ -167,7 +167,7 @@ void legone::f_val_exp_node::display(ostream &os) const
     os << s << endl;
 }
 
-void legone::f_val_exp_node::walk(SymTab &sym_tab, bool print) const
+void legone::f_val_exp_node::walk(SymTab &sym_tab, bool print)
 {
     auto func_type = sym_tab.get_type(f_name);
     auto s = format("cannot resolve term {}(", f_name);
@@ -212,13 +212,21 @@ legone::algo_node::algo_node(vector<unique_ptr<construct_stmt_node>> constructs,
 {
 }
 
-void legone::algo_node::walk(SymTab &sym_tab, bool print) const
+void legone::algo_node::walk(SymTab &sym_tab, bool print)
 {
     if (print)
     {
         std::cout << "algo begin: " << std::endl;
     }
     sym_tab.increase_scope();
+
+    // compiler backdoor for inherent constraints
+    auto inherent_constraint_rets = vector<tuple<string, basic_type>>();
+    auto inherent_constraint_rparams = vector<unique_ptr<rparam_node>>();
+    auto inherent_constraint_node = make_unique<construct_stmt_node>(
+        std::move(inherent_constraint_rets), string(inherent_constraint_name), std::move(inherent_constraint_rparams));
+    constructs.push_back(std::move(inherent_constraint_node));
+
     for (auto &construct : constructs)
     {
         construct->walk(sym_tab, print);
@@ -276,7 +284,7 @@ legone::constraint_node::constraint_node(vector<tuple<string, basic_type>> quant
 {
 }
 
-void legone::constraint_node::walk(SymTab &sym_tab, bool print) const
+void legone::constraint_node::walk(SymTab &sym_tab, bool print)
 {
     if (print)
     {
@@ -302,7 +310,7 @@ void legone::constraint_node::walk(SymTab &sym_tab, bool print) const
         auto &[q_name, q_type] = quantifier;
         if (sym_tab.get_type(q_name))
         {
-            throw std::runtime_error(format("cannot claim quantifier ({}): symbol {} already used for another purpose",
+            throw std::runtime_error(format("cannot claim quantifier forall({}): symbol {} already used for another purpose",
                                             print_quantifier(quantifier), q_name));
         }
         if (q_type == basic_type::Payoff)
@@ -379,13 +387,9 @@ legone::construct_stmt_node::construct_stmt_node(vector<tuple<string, basic_type
                                                  vector<unique_ptr<rparam_node>> rparams)
     : rets(std::move(rets)), operation_name(operation_name), rparams(std::move(rparams))
 {
-    if (this->rets.size() == 0)
-    {
-        throw std::runtime_error("Construct statement must have at least one return value");
-    }
 }
 
-void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print) const
+void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print)
 {
     auto operation_type = sym_tab.get_type(operation_name);
     if (not operation_type)
@@ -505,7 +509,7 @@ void legone::strategy_rparam_node::display(ostream &os) const
     os << "\t\t\trparam_node: strategy: " << strategy_name << endl;
 }
 
-void legone::strategy_rparam_node::walk(SymTab &sym_tab, bool print) const
+void legone::strategy_rparam_node::walk(SymTab &sym_tab, bool print)
 {
     if (print)
     {
@@ -552,7 +556,7 @@ void legone::payoff_exp_rparam_node::display(ostream &os) const
     os << s << endl;
 }
 
-void legone::payoff_exp_rparam_node::walk(SymTab &sym_tab, bool print) const
+void legone::payoff_exp_rparam_node::walk(SymTab &sym_tab, bool print)
 {
     for (auto payoff_term : basic_payoffs)
     {
@@ -593,7 +597,7 @@ legone::operation_node::operation_node(const string &name, vector<tuple<string, 
     }
 }
 
-void legone::operation_node::walk(SymTab &sym_tab, bool print) const
+void legone::operation_node::walk(SymTab &sym_tab, bool print)
 {
     auto print_type = [](const basic_type &ret_type) {
         if (ret_type == basic_type::Payoff)
@@ -605,6 +609,16 @@ void legone::operation_node::walk(SymTab &sym_tab, bool print) const
             return format("p{}", int(ret_type));
         }
     };
+
+    // compiler backdoor for inherent constraints
+
+    if (name == inherent_constraint_name)
+    {
+        rets.clear();
+        fparams.clear();
+        extra_params.clear();
+    }
+
     // def the operation symbol
     OperationType operation_type;
     for (auto &fparam : fparams)
@@ -734,7 +748,7 @@ void legone::param_exp_node::display(ostream &os) const
     os << s << endl;
 }
 
-void legone::param_exp_node::walk(SymTab &sym_tab, bool print) const
+void legone::param_exp_node::walk(SymTab &sym_tab, bool print)
 {
     if (not sym_tab.get_type(param_name))
     {

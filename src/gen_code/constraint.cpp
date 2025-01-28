@@ -178,9 +178,6 @@ void constraint::optimization_tree::gen_tree(const legone::ast_root &ast)
             }
         }
     }
-    // generate inherent constraints
-    gen_inherent_constraints();
-
     // generate optimal mixing definitions
     gen_opt_mix_func_def();
 
@@ -279,48 +276,6 @@ void constraint::optimization_tree::gen_alias()
     {
         string alias = aliases[i];
         name_alias["(" + join(strategy_combinations[i], ",") + ")"] = alias;
-    }
-}
-
-void constraint::optimization_tree::gen_inherent_constraints()
-{
-    vector<vector<string>> strategy_combinations;
-    vector<string> current(num_players);
-    vector<int> player_indices(num_players);
-    std::iota(begin(player_indices), end(player_indices), 1);
-
-    generate_combinations(strategy_combinations, current, 0, player_indices);
-    for (const auto &strategy_combination : strategy_combinations)
-    {
-        // Uk(x1, x2, ..., xn) >= 0, Uk(x1, x2, ..., xn) <= 1
-        // fk(x1, x2, ..., xn) >= 0, fk(x1, x2, ..., xn) <= 1
-        // Uk(x1, x2, ..., xn) + fk(x1, x2, ..., xn) <= 1
-        for (int i = 1; i <= num_players; i++)
-        {
-            auto U_geq_0 = make_unique<op_exp_node>(
-                op_exp_node::op_type::GEQ, make_unique<payoff_exp_node>(format("U{}", i), strategy_combination),
-                make_unique<num_exp_node>(0));
-            auto U_leq_1 = make_unique<op_exp_node>(
-                op_exp_node::op_type::LEQ, make_unique<payoff_exp_node>(format("U{}", i), strategy_combination),
-                make_unique<num_exp_node>(1));
-            auto f_geq_0 = make_unique<op_exp_node>(op_exp_node::op_type::GEQ,
-                                                    make_unique<f_val_exp_node>(format("f{}", i), strategy_combination),
-                                                    make_unique<num_exp_node>(0));
-            auto f_leq_1 = make_unique<op_exp_node>(op_exp_node::op_type::LEQ,
-                                                    make_unique<f_val_exp_node>(format("f{}", i), strategy_combination),
-                                                    make_unique<num_exp_node>(1));
-            auto U_plus_f_leq_1 = make_unique<op_exp_node>(
-                op_exp_node::op_type::LEQ,
-                make_unique<op_exp_node>(op_exp_node::op_type::ADD,
-                                         make_unique<payoff_exp_node>(format("U{}", i), strategy_combination),
-                                         make_unique<f_val_exp_node>(format("f{}", i), strategy_combination)),
-                make_unique<num_exp_node>(1));
-            constraints.push_back(std::move(U_geq_0));
-            constraints.push_back(std::move(U_leq_1));
-            constraints.push_back(std::move(f_geq_0));
-            constraints.push_back(std::move(f_leq_1));
-            constraints.push_back(std::move(U_plus_f_leq_1));
-        }
     }
 }
 

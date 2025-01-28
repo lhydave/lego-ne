@@ -35,6 +35,9 @@ enum class basic_type : int
     Payoff = 0
 };
 
+static constexpr std::string_view inherent_constraint_name = "inherent_constraints";
+
+
 class operation_node;
 class algo_node;
 class constraint_node;
@@ -56,12 +59,12 @@ struct OperationType
 {
     vector<BasicType> params_type;
     vector<BasicType> ret_type;
-    bool operator==(const OperationType& other);
+    bool operator==(const OperationType &other);
 };
 
 using Type = variant<BasicType, OperationType>;
 
-bool operator==(const Type& a, const Type&b);
+bool operator==(const Type &a, const Type &b);
 
 // record whether a symbol has been defined, and its type
 struct SymTab
@@ -79,7 +82,7 @@ class ast_node_base
 {
   public:
     virtual ~ast_node_base() = default;
-    virtual void walk(legone::SymTab &sym_tab, bool print = false) const = 0;
+    virtual void walk(legone::SymTab &sym_tab, bool print = false) = 0;
 };
 
 class ast_root : public ast_node_base
@@ -90,7 +93,7 @@ class ast_root : public ast_node_base
     unique_ptr<algo_node> algo;
 
     ast_root() = default;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class operation_node : public ast_node_base
@@ -105,7 +108,7 @@ class operation_node : public ast_node_base
     operation_node(const string &name, vector<tuple<string, basic_type>> fparams, vector<basic_type> ret_types,
                    unordered_set<string> extra_params, vector<unique_ptr<constraint_node>> constraints,
                    vector<string> ret_names);
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override; 
 };
 
 class algo_node : public ast_node_base
@@ -115,7 +118,7 @@ class algo_node : public ast_node_base
     vector<string> rets;
 
     algo_node(vector<unique_ptr<construct_stmt_node>> construct, vector<string> rets);
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override; // need to add inherent constraint, thus should modify the tree
 };
 
 class constraint_node : public ast_node_base
@@ -134,7 +137,7 @@ class constraint_node : public ast_node_base
 
     constraint_node(vector<tuple<string, basic_type>> quantifiers, unique_ptr<exp_node> left_exp,
                     unique_ptr<exp_node> right_exp, comp_op op);
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 
     static comp_op str2comp_op(const string &op);
 };
@@ -148,7 +151,7 @@ class construct_stmt_node : public ast_node_base
 
     construct_stmt_node(vector<tuple<string, basic_type>> rets, const string &operation_name,
                         vector<unique_ptr<rparam_node>> rparams);
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class rparam_node : public ast_node_base
@@ -163,7 +166,7 @@ class rparam_node : public ast_node_base
     virtual ~rparam_node() = default;
 
     virtual void display(ostream &os) const = 0;
-    virtual void walk(legone::SymTab &sym_tab, bool print = false) const = 0;
+    virtual void walk(legone::SymTab &sym_tab, bool print = false) = 0;
 };
 
 class strategy_rparam_node : public rparam_node
@@ -173,7 +176,7 @@ class strategy_rparam_node : public rparam_node
 
     strategy_rparam_node(const string &strategy_name);
     void display(ostream &os) const override;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class payoff_exp_rparam_node : public rparam_node
@@ -184,7 +187,7 @@ class payoff_exp_rparam_node : public rparam_node
 
     payoff_exp_rparam_node(vector<tuple<string, int>> linear_terms);
     void display(ostream &os) const override;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class exp_node : public ast_node_base
@@ -202,7 +205,7 @@ class exp_node : public ast_node_base
 
     virtual ~exp_node() = default;
     virtual void display(ostream &os) const = 0;
-    virtual void walk(legone::SymTab &sym_tab, bool print = false) const = 0;
+    virtual void walk(legone::SymTab &sym_tab, bool print = false) = 0;
 };
 
 class num_exp_node : public exp_node
@@ -211,7 +214,7 @@ class num_exp_node : public exp_node
     double val;
     num_exp_node(double val);
     void display(ostream &os) const override;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class op_exp_node : public exp_node
@@ -230,7 +233,7 @@ class op_exp_node : public exp_node
 
     op_exp_node(op_type o_type, unique_ptr<exp_node> left, unique_ptr<exp_node> right);
     void display(ostream &os) const override;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class payoff_exp_node : public exp_node
@@ -241,7 +244,7 @@ class payoff_exp_node : public exp_node
 
     payoff_exp_node(const string &payoff_name, vector<string> strategies);
     void display(ostream &os) const override;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class f_val_exp_node : public exp_node
@@ -252,7 +255,7 @@ class f_val_exp_node : public exp_node
 
     f_val_exp_node(const string &f_name, vector<string> strategies);
     void display(ostream &os) const override;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 class param_exp_node : public exp_node
@@ -262,7 +265,7 @@ class param_exp_node : public exp_node
 
     param_exp_node(const string &param_name);
     void display(ostream &os) const override;
-    void walk(legone::SymTab &sym_tab, bool print = false) const override;
+    void walk(legone::SymTab &sym_tab, bool print = false) override;
 };
 
 bool is_f_val(const string &s);

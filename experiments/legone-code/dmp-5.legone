@@ -4,8 +4,6 @@ def BestResponse1(s2: p2) -> p1:
     description = "Best response for player 1 against s2"
     extra_params = []
     constraints = [
-        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)), # missing inherent constraints
-        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)), # missing inherent constraints
         forall(x:p1).(U1(x,s2)<=U1(x1,s2))
     ]
     return x1
@@ -29,6 +27,20 @@ def Random2() -> p2:
     extra_params = []
     constraints = []
     return y
+
+def inherent_constraints() -> p1:
+    description = "Inherent constraints"
+    extra_params = []
+    constraints = [
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)),
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)),
+        forall(x:p1).forall(y:p2).(f1(x,y)+U1(x,y)<=1),
+        forall(x:p1).forall(y:p2).(f2(x,y)+U2(x,y)<=1),
+        forall(x:p1).forall(y:p2).(f1(x,y)>=0),
+        forall(x:p1).forall(y:p2).(f2(x,y)>=0),
+        forall(x:p1).forall(y:p2).forall(U:Payoff).(U(x,y)>=0)
+    ]
+    return temp
 
 def algo():
     b1: p1 = Random1()

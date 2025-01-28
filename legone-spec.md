@@ -150,6 +150,10 @@ There are two built-in operations that can be used in the algorithm:
 - `optimal_mix`: This operation computes the optimal mixing of the given strategies. To obey the syntax, the parameters of this operation should be a list of strategies, and the return type should be a list of strategies, which consists of a valid strategy profile. The compiler should check that each player has at least one strategy as input.
 - `argmin`: Given a sequence of strategy profiles, this operation computes the one with minimum approximation. To obey the syntax, the parameters of this operation should be a list of strategy profiles in the following order: player 1's strategy in profile 1, player 2's strategy in profile 1, ..., player n's strategy in profile 1, player 1's strategy in profile 2, player 2's strategy in profile 2, ..., player n's strategy in profile 2, ..., and the return type should be a list of strategies, which consists of a valid strategy profile.
 
+### Inherent Constraints
+
+When an operation named ``"inherent_constraints"`` is defined, the compiler will recognize it as a special operation that contains the inherent constraints of the game. The constraints in this operation will be added to the constraints of the algorithm automatically. To tame the compiler, the return type of this operation should be any player type.
+
 ### Constraint Specification
 
 A constraint is a first-order universal arithmetic formula, which is a string enclosed in double quotes. It is constructed using plus, minus, and multiplication operations, and comparison operations such as `==`, `>=`, and `<=`. The operands of the operations are either numbers, a realized payoff, or an $f$ value. A realized payoff is the evaluation of a payoff function with a list of strategies. An $f$ value is the evaluation of the approximation/incentive/regret function of player `k` with a list of strategies. Thus, they should be treated as a function call with a list of strategies as its arguments.
