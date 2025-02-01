@@ -12,3 +12,4 @@ results
 src/location.hh
 src/*.py
 src/*.m
+__pycache__

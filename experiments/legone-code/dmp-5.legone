@@ -40,7 +40,7 @@ def inherent_constraints() -> p1:
         forall(x:p1).forall(y:p2).(f2(x,y)>=0),
         forall(x:p1).forall(y:p2).forall(U:Payoff).(U(x,y)>=0)
     ]
-    return temp
+    return None
 
 def algo():
     b1: p1 = Random1()

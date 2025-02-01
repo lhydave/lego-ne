@@ -1,5 +1,8 @@
-num_players = 2
+'''
+    Config the prompts.
+'''
 
+BUILDING_BLOCKS = r"""
 def BestResponse1(s2: p2) -> p1:
     description = "Best response for player 1 against s2"
     extra_params = []
@@ -85,7 +88,9 @@ def MaxPayoff(U: Payoff) -> List[p1, p2]:
         forall(x:p1).forall(y:p2).(U(x,y)<=U(x1,y1))
     ]
     return x1, y1
+"""
 
+INHERENT_CONSTRAINTS = r"""
 def inherent_constraints() -> p1:
     description = "Inherent constraints"
     extra_params = []
@@ -99,3 +104,40 @@ def inherent_constraints() -> p1:
         forall(x:p1).forall(y:p2).forall(U:Payoff).(U(x,y)>=0)
     ]
     return None
+
+"""
+
+NUM_PLAYER_DECLARE = r"""num_players = 2
+"""
+
+SAMPLE_OUTPUT = r"""
+```python
+def algo():
+    b1: p1 = Random1()
+    b2: p2 = BestResponse2(b1)
+    a1: p1 = BestResponse1(b2)
+```
+"""
+
+FIRST_ROUND_PROMPT = f"""You are an expert in algorithmic game theory. Now you are given a task to design approximate Nash equilibrium (ANE) algorithms for two-player games with an approximation $\\epsilon$ as small as possible. Specifically, for each round, you need to give me a python-like function called `algo()` using provided building blocks. Then, the compiler will give you the error message (if your code has bugs) or the approximation $\\epsilon$ your given algorithm has. You can use these information to modify your code in the next round.
+
+You need to follow the following instructions:
+    1. `p1`, `p2`,... are the types of strategies. `pi` is the strategy of player i.
+    2. `Payoff` is the type of payoff. There are two inherent payoff variables: `U1` of player 1 and `U2` of player 2. The real parameter of `Payoff` type variable is a linear combination of U1 and U2.
+    3. You can only define `algo()` using static single assignments (SSAs).
+    4. You must not write down the return statement as the compiler will automatically figure out the return. However, you need to construct for each player at least one strategy.
+    5. Your algorithm should not exceed 8 lines, the shorter the better (Occam's Razor).
+    6. You can only output the `def algo():` statements in python code block.
+    7. You can utilize the information given in building block definitions to design the algorithm.
+
+Provided building blocks: {BUILDING_BLOCKS}
+
+Sample output: {SAMPLE_OUTPUT}
+
+Your outout starts here:
+"""
+
+COMPILE_ERROR_PROMPT = """Your code has caused a compiler error. The error message is here:
+"""
+
+APPROX_PROMPT = """Your provided code has an approximation $\\epsilon$ of """
