@@ -260,6 +260,6 @@ string mathematica::generator::gen_constraints() const
 
 string mathematica::generator::gen_approx_bound_optimization(string_view vars) const
 {
-    return format("NMaximize[{{{}, {}}}, {{{}}}, {}]\n", tree.opt_mix_bound_prefix, constraint_name, vars,
+    return format("NMaxValue[{{{}, {}}}, {{{}}}, {}]\n", tree.opt_mix_bound_prefix, constraint_name, vars,
                   optimization_extra_param);
 }

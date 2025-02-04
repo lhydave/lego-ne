@@ -1,8 +1,8 @@
-# LegoNE - Automating Approximate NE Algorithm Analysis
+# LegoNE - Automating Approximate NE Algorithm Design and Analysis
 
 ## Overview
 
-LegoNE is a tool for automating the approximation analysis of approximate Nash equilibria (NE) algorithms. It contains the following components:
+LegoNE is a tool for automating both the design of approximate Nash equilibria (NE) algorithms and their approximation analysis. It contains the following components:
 
 1. **LegoNE programming language**: A python-like language for specifying approximate NE algorithms. Users can specify the building blocks of the algorithm, such as computing the best response, computing an NE for a two-layer zero-sum game, and mixing two strategies. Then, users can write down the algorithm by combining these building blocks.
 2. **LegoNE compiler**: A compiler that translates the LegoNE code into 
@@ -10,6 +10,12 @@ LegoNE is a tool for automating the approximation analysis of approximate Nash e
     - Z3 code that proves that the algorithm has the given approximation bound $b$.
     
     For the Z3 code, if the algorithm has a bound $b$, the Z3 code will provide the proof tree that derives the bound $b$ step by step; if LegoNE fails to prove the bound, the Z3 code will provide the possible counterexample that violates the bound.
+
+3. **LegoNE auto-design module**: A Python 3 module that automatically designs approximate NE algorithms using large language models (LLMs). It coordinates the interaction between LLM and evaluator (LegoNE compiler + Mathematica) to iteratively generate and improve LegoNE algorithms. It manages:
+    1. Experiment logging and result storage
+    2. LLM interactions for algorithm generation
+    3. Algorithm evaluation and improvement cycles
+    4. Best result tracking
 
 ## Download
 
@@ -57,6 +63,15 @@ You can install the z3-solver package by running the following command:
 pip install z3-solver
 ```
 
+To use the LegoNE auto-design module, you need to have the following dependencies installed:
+- openai (python package for LLM interaction)
+
+You can install the openai package by running the following command:
+
+```bash
+pip install openai
+```
+
 ### Build
 
 To build the LegoNE compiler, run the following command in the root directory of the project:
@@ -71,7 +86,7 @@ If the build is successful, you will see a `compiler` executable in the `src` di
 make clean
 ```
 
-## Usage
+## Usage of LegoNE Compiler
 
 The LegoNE code is written in a file with the extension `.legone`. 
 
@@ -104,11 +119,25 @@ For example, if you want to generate Z3 code to prove that the algorithm in the 
 ./compiler example.legone -b 0.4 -o example.py
 ```
 
+## Usage of LegoNE Auto-Design Module
+
+Every useful API has detailed documentations in the corresponding python file.
+
+You can find a python example file `auto_design_experiment.py` in the `src` directory. This is an example file as well as the experiment file that demonstrates how to use the LegoNE auto-design module to automatically design approximate NE algorithms. You can modify the example file for your own experiments.
+
+To run the example file, you can run the following command in the `src` directory:
+
+```bash
+python auto_design_experiment.py
+```
+
+When it is running, you can see all the logs in `auto-design.log` file in the `experiments` directory. The generated algorithms and their approximation bounds are stored in the `experiments/auto-design-results` directory.
+
 ## Repository Structure
 
 The repository contains the following directories:
 
-- `src`: The source code of the LegoNE compiler, implemented in C++ with Flex and Bison.
+- `src`: The source code of the LegoNE compiler and the LegoNE auto-design module.
 - `experiments`: The experiments of the LegoNE compiler, including the LegoNE code, the generated Mathematica code, and the generated Z3 code.
 - `tests`: The test cases of the LegoNE compiler, including the LegoNE code.
 - `legone-spec.md`: The specification of the LegoNE programming language.

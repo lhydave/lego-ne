@@ -1,6 +1,9 @@
-'''
+"""
     Config the prompts.
-'''
+"""
+
+from typing import Callable
+
 
 BUILDING_BLOCKS = r"""
 def BestResponse1(s2: p2) -> p1:
@@ -31,25 +34,6 @@ def Random2() -> p2:
     constraints = []
     return y
 
-def DMP_LP() -> List[p1, p2, p1, p2]:
-    description = "Compute the DMP solution using linear programming"
-    extra_params = ["vr", "vc"]
-    constraints = [
-        0<=vr,
-        vr<=1,
-        0<=vc,
-        vc<=1,
-        U1(alpha,beta)>=vr,
-        U2(alpha,beta)>=vc,
-        U1(alpha,y)>=vr,
-        forall(x1:p1).(U1(x1,y)<=vr),
-        U1(x,beta)>=vr,
-        U2(alpha,y)>=vc,
-        forall(y1:p2).(U2(x,y1)<=vc),
-        U2(x,beta)>=vc
-    ]
-    return x,y,alpha,beta
-
 def StationaryPoint() -> List[p1, p2, p1, p2]:
     description = "Compute the stationary point and its dual solution"
     extra_params = ["rho"]
@@ -63,6 +47,15 @@ def StationaryPoint() -> List[p1, p2, p1, p2]:
     ]
     return xs, ys, w, z
 
+def ZeroSumNE(U: Payoff) -> List[p1, p2]:
+    description = "Zero-sum Nash equilibrium"
+    extra_params = []
+    constraints = [
+        forall(x:p1).(U(x,y_star)<=U(x_star,y_star)),
+        forall(y:p2).(U(x_star,y)>=U(x_star,y_star))
+    ]
+    return x_star, y_star
+    
 def EqMix1(x1: p1, x2: p1) -> p1:
     description = "Equal mixture of two strategies for player 1"
     extra_params = []
@@ -123,21 +116,36 @@ FIRST_ROUND_PROMPT = f"""You are an expert in algorithmic game theory. Now you a
 
 You need to follow the following instructions:
     1. `p1`, `p2`,... are the types of strategies. `pi` is the strategy of player i.
-    2. `Payoff` is the type of payoff. There are two inherent payoff variables: `U1` of player 1 and `U2` of player 2. The real parameter of `Payoff` type variable is a linear combination of U1 and U2.
+    2. `Payoff` is the type of payoff. There are two inherent payoff variables: `U1` of player 1 and `U2` of player 2. The real parameter of `Payoff` type variable is a linear combination of U1 and U2, e.g., `U1-U2`.
     3. You can only define `algo()` using static single assignments (SSAs).
-    4. You must not write down the return statement as the compiler will automatically figure out the return. However, you need to construct for each player at least one strategy.
-    5. Your algorithm should not exceed 8 lines, the shorter the better (Occam's Razor).
-    6. You can only output the `def algo():` statements in python code block.
-    7. You can utilize the information given in building block definitions to design the algorithm.
+    4. Each assignment statement be given a type annotation, e.g., `x1: p1, x2: p2, y1: p1, y2: p2 = StationaryPoint()`, here `p1` and `p2` are necessary.
+    5. You must not write down the return statement as the compiler will automatically figure out the return. However, you need to construct for each player at least one strategy.
+    6. Your algorithm should not exceed 8 lines, the shorter the better (Occam's Razor).
+    7. You can only output the `def algo():` statements in python code block.
+    8. You can utilize the information given in building block definitions to design the algorithm. Don't let the below "sample output" to restrict your creativity.
 
-Provided building blocks: {BUILDING_BLOCKS}
+Provided building blocks: 
+{BUILDING_BLOCKS}
 
-Sample output: {SAMPLE_OUTPUT}
+Sample output: 
+{SAMPLE_OUTPUT}
 
-Your outout starts here:
+Your outout algorithm starts here:
 """
 
-COMPILE_ERROR_PROMPT = """Your code has caused a compiler error. The error message is here:
+COMPILE_ERROR_PROMPT: Callable[[str], str] = (
+    lambda err_msg: """Your code has caused a compile error. The error message is here:
 """
+    + err_msg
+    + """
+Your new outout algorithm starts here:
+"""
+)
 
-APPROX_PROMPT = """Your provided code has an approximation $\\epsilon$ of """
+APPROX_PROMPT: Callable[[float], str] = (
+    lambda approx: """Your provided code has an approximation $\\epsilon$ of """
+    + str(approx)
+    + """
+Your new outout algorithm starts here:
+"""
+)

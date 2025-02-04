@@ -11,5 +11,6 @@ compiler
 results
 src/location.hh
 src/*.py
+!src/auto_design_experiment.py
 src/*.m
 __pycache__

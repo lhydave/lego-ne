@@ -43,7 +43,7 @@ public:
 private:
 	static constexpr string_view constraint_name = "constraints";
 	static constexpr string_view optimization_extra_param =
-		"AccuracyGoal -> 7, WorkingPrecision -> 18, MaxIterations -> 2000";
+		"AccuracyGoal -> 7, WorkingPrecision -> 30, MaxIterations -> 2000";
 	tuple<string, string> gen_alias_and_param() const;
 	string gen_opt_mix_func() const;
 	string gen_opt_mix_bounds() const;

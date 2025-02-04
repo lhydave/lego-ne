@@ -39,10 +39,10 @@ def test_evaluator_workflow_success():
     ), "Result should be float (success)"
 
     assert (success == True), "Cannot fail for this test case"
-    # On success, verify approximation ratio is approximately 0.5
+    # On success, verify approximation bound is approximately 0.5
     assert (
         abs(result - 0.5) < 1e-6
-    ), "Approximation ratio should be approximately 0.5"
+    ), "Approximation bound should be approximately 0.5"
 
     # Check if temporary files were created and then cleaned up
     assert not Path(
