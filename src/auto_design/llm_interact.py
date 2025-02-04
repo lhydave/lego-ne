@@ -19,11 +19,13 @@ class LLMConfig:
         api_key (str): The API key for accessing the LLM service
         base_url (str): The base URL for the LLM API endpoint
         model (str): The name of the LLM model to use
+        temperature (float between 0 and 2): The randomness of the LLM output, larger temperature means greater creativity
     """
 
     api_key: str
     base_url: str
     model: str
+    temperature: float
 
 
 class LLMInteractor(object):
@@ -47,6 +49,9 @@ class LLMInteractor(object):
         self.first_round_prompt = FIRST_ROUND_PROMPT
         self.compile_error_prompt = COMPILE_ERROR_PROMPT
         self.approx_prompt = APPROX_PROMPT
+        self.temperature = llm_config.temperature
+        if not 0 <= self.temperature <= 2:
+            raise ValueError("temperature must be between 0 and 2")
         self.logger = logger
 
         self.logger(
@@ -54,7 +59,8 @@ class LLMInteractor(object):
         )
         self.logger(f"API Key: {llm_config.api_key}")
         self.logger(f"Base URL: {llm_config.base_url}")
-        self.logger(f"Model: {llm_config.model}\n")
+        self.logger(f"Model: {llm_config.model}")
+        self.logger(f"temperature: {llm_config.temperature}")
 
     def interact(self, message: str):
         """Send a message to LLM and get processed response.
@@ -84,7 +90,7 @@ class LLMInteractor(object):
             self.logger(f"\033[1;92m{' message JSON ends '.center(100, '=')}\033[0m\n")
 
             response = self.client.chat.completions.create(
-                model=self.model, messages=self.messages
+                model=self.model, messages=self.messages, temperature=self.temperature
             )
         except Exception as e:
             self.messages.pop()
