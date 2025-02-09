@@ -2,7 +2,6 @@
     Methods and configurations for interacting with LLMs.
 """
 
-import json
 from attr import dataclass
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam
@@ -19,7 +18,7 @@ class LLMConfig:
         api_key (str): The API key for accessing the LLM service
         base_url (str): The base URL for the LLM API endpoint
         model (str): The name of the LLM model to use
-        temperature (float between 0 and 2): The randomness of the LLM output, larger temperature means greater creativity
+        temperature (float between 0 and 1): The randomness of the LLM output, larger temperature means greater creativity
     """
 
     api_key: str
@@ -50,8 +49,8 @@ class LLMInteractor(object):
         self.compile_error_prompt = COMPILE_ERROR_PROMPT
         self.approx_prompt = APPROX_PROMPT
         self.temperature = llm_config.temperature
-        if not 0 <= self.temperature <= 2:
-            raise ValueError("temperature must be between 0 and 2")
+        if not 0 <= self.temperature <= 1:
+            raise ValueError("temperature must be between 0 and 1")
         self.logger = logger
 
         self.logger(
@@ -61,6 +60,7 @@ class LLMInteractor(object):
         self.logger(f"Base URL: {llm_config.base_url}")
         self.logger(f"Model: {llm_config.model}")
         self.logger(f"temperature: {llm_config.temperature}")
+        
 
     def interact(self, message: str):
         """Send a message to LLM and get processed response.
@@ -82,16 +82,17 @@ class LLMInteractor(object):
         try:
             # Add user message to history
             self.messages.append({"role": "user", "content": message})
-            self.logger(
-                f"""\033[1;95mCurrent messages JSON:\033[0m
-\033[1;92m{' message JSON begins '.center(100, '=')}\033[0m"""
-            )
-            self.logger(json.dumps(self.messages, indent=4, ensure_ascii=False))
-            self.logger(f"\033[1;92m{' message JSON ends '.center(100, '=')}\033[0m\n")
+#             self.logger(
+#                 f"""\033[1;95mCurrent messages JSON:\033[0m
+# \033[1;92m{' message JSON begins '.center(100, '=')}\033[0m"""
+#             )
+#             self.logger(str(self.messages))
+#             self.logger(f"\033[1;92m{' message JSON ends '.center(100, '=')}\033[0m\n")
 
             response = self.client.chat.completions.create(
                 model=self.model, messages=self.messages, temperature=self.temperature
             )
+
         except Exception as e:
             self.messages.pop()
             self.logger(
@@ -101,7 +102,7 @@ class LLMInteractor(object):
 
         ret_str = response.choices[0].message.content
         # Add assistant response to history
-        self.messages.append(response.choices[0].message)  # type: ignore
+        self.messages.append({"role": "assistant", "content": ret_str})  # type: ignore
 
         if not ret_str:
             self.logger("\033[1;93mWarning: Empty response received from LLM\033[0m\n")
@@ -114,6 +115,19 @@ class LLMInteractor(object):
         )
         self.logger(ret_str)
         self.logger(f"\033[1;92m{' message ends '.center(100, '=')}\033[0m\n")
+
+        # if this is a reasoner model, try to record the the reasoning content
+        try:
+            self.logger(
+                f"""\033[1;95mThe reasoning content of LLM is:\033[0m
+\033[1;92m{' reasoning begins '.center(100,'=')}\033[0m
+{response.choices[0].message.reasoning_content}
+\033[1;92m{' reasoning ends '.center(100, '=')}\033[0m
+"""
+            )
+        except:
+            pass
+
         self.logger(
             f"""\033[1;95mThe extracted LegoNE code is:\033[0m
 \033[1;92m{' LegoNE code begins '.center(100,'=')}\033[0m"""
