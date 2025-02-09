@@ -502,6 +502,7 @@ void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print)
 
 legone::strategy_rparam_node::strategy_rparam_node(const string &strategy_name) : strategy_name(strategy_name)
 {
+    type = rparam_type::STRATEGY;
 }
 
 void legone::strategy_rparam_node::display(ostream &os) const
@@ -519,6 +520,7 @@ void legone::strategy_rparam_node::walk(SymTab &sym_tab, bool print)
 
 legone::payoff_exp_rparam_node::payoff_exp_rparam_node(vector<tuple<string, int>> linear_terms)
 {
+    type = rparam_type::PAYOFF_EXP;
     for (auto &term : linear_terms)
     {
         basic_payoffs.push_back(std::get<0>(term));
@@ -566,7 +568,7 @@ void legone::payoff_exp_rparam_node::walk(SymTab &sym_tab, bool print)
             throw std::runtime_error(
                 format("error when using {} as a payoff: {} is not defined", payoff_term, payoff_term));
         }
-        if (term_type.value() != "U")
+        if (term_type.value() != "payoff")
         {
             throw std::runtime_error(
                 format("error when using {} as a payoff: {} is not a payoff function", payoff_term, payoff_term));

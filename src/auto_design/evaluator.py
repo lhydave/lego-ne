@@ -17,7 +17,7 @@ def get_approximation(wolfram_output: str):
     # Find the last non-empty line in the output
     lines = wolfram_output.strip().split("\n")
     last_line = next(line for line in reversed(lines) if line.strip())
-    return float(last_line[0:9]) + 1e-7
+    return float(last_line[0:9]) + 1e-6
 
 
 class Evaluator(object):
@@ -70,6 +70,12 @@ class Evaluator(object):
 
     def gen_legone_code(self, algo_code: str):
         self.logger("\033[1;95mEvaluator is generating LegoNE code...\033[0m")
+                # check if both player has at most three strategies
+        p1_count = algo_code.replace(" ", "").count(":p1")
+        p2_count = algo_code.replace(" ", "").count(":p2")
+        if p1_count > 3 or p2_count > 3:
+                self.logger("\033[1;91mFailed. Each player can have at most 3 strategies. Cannot use!\033[0m")
+                return "Each player can have at most 3 strategies. Cannot use!"
         legone_code = (
             NUM_PLAYER_DECLARE + BUILDING_BLOCKS + INHERENT_CONSTRAINTS + algo_code
         )
@@ -82,6 +88,9 @@ class Evaluator(object):
         )
         self.logger(legone_code)
         self.logger(f"\033[1;92m{' LegoNE code ends '.center(100, '=')}\033[0m\n")
+
+        return None
+
 
     def gen_wolfram_code(self):
         self.logger("\033[1;95mEvaluator is generating mathematica code...\033[0m")
@@ -173,6 +182,17 @@ class Evaluator(object):
             self.logger(
                 f"\033[1;92mEvaluator got approximation: {self.approximation}\033[0m"
             )
+            if self.approximation <= 1e-4:
+                self.logger("\033[1;93mWarning: Mathematica may fail to converge...Try again\033[0m")
+                # try again
+                self.approximation = get_approximation(wolfram_output)
+                self.logger(
+                f"\033[1;92mEvaluator got approximation: {self.approximation}\033[0m"
+                )
+                if self.approximation <= 1e-4:
+                    self.logger("\033[1;93mWarning: Mathematica may fail to converge for the second trial\033[0m")
+                    return "Got approximation 0.0. It indicates that the computation may fail to converge. Try simpler algorithm."
+            
             return None
 
         except Exception as e:
@@ -210,7 +230,9 @@ class Evaluator(object):
                 - If evaluation succeeds: (True, approximation_bound)
         """
         # First generate legone code
-        self.gen_legone_code(algo_code)
+        gen_code_error = self.gen_legone_code(algo_code)
+        if gen_code_error:
+            return False, gen_code_error
 
         # Then compile to wolfram code
         compile_error = self.gen_wolfram_code()
