@@ -71,7 +71,7 @@ To use the LegoNE auto-design module, you need to have the following dependencie
 You can install the openai package by running the following command:
 
 ```bash
-pip install openai
+pip install openai attrs
 ```
 
 ### Build
