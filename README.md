@@ -19,6 +19,8 @@ LegoNE is a tool for automating both the design of approximate Nash equilibria (
 
 ## Download
 
+To use LegoNE, you should first download the source code of LegoNE from this repository and run the code on your machine. 
+
 ### Download Using Shells
 
 You can use shells to download the source code of LegoNE. For MacOS and Linux users, your shell application is Terminal. For Windows users, your shell application is Command Prompt (cmd).
@@ -47,7 +49,7 @@ To build LegoNE compiler, you need to have the following dependencies installed:
 - Flex (>= 2.6), see [Flex GitHub website](https://github.com/westes/flex)
 - Bison (>= 3.8.2), see [Bison official website](https://www.gnu.org/software/bison/)
 
-To run the generated Mathematica code, you need to have the following one of the following applications installed:
+To run the generated Mathematica code, you need to have one of the following applications installed:
 - Mathematica (>= 13.0), a commercial GUI-based software
 - Wolfram Engine (>= 13.0), a terminal-based free version of Mathematica
 
