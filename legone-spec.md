@@ -232,6 +232,14 @@ def random3() -> p3:
     constraints = []
     return s
 
+def inherent_constraints() -> p1:
+    description = "Inherent constraints of the game"
+    extra_params = []
+    constraints = [
+        forall(U:Payoff).forall(s2:p2).forall(s3:p3).(U(s1, s2, s3) >= 0)
+    ]
+    return None
+
 def algo():
     s2: p2 = random2()
     s3: p3 = random3()
