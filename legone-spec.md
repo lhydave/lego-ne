@@ -152,7 +152,7 @@ There are two built-in operations that can be used in the algorithm:
 
 ### Inherent Constraints
 
-When an operation named ``"inherent_constraints"`` is defined, the compiler will recognize it as a special operation that contains the inherent constraints of the game. The constraints in this operation will be added to the constraints of the algorithm automatically. To tame the compiler, the return type of this operation should be any player type.
+When an operation named ``inherent_constraints`` is defined, the compiler will recognize it as a special operation that contains the inherent constraints of the game. The constraints in this operation will be added to the constraints of the algorithm automatically. To tame the compiler, the return type of this operation should be any player type. The ``inherent_constraints`` operation must be defined in the program, otherwise the compiler will raise an error.
 
 ### Constraint Specification
 
@@ -231,6 +231,14 @@ def random3() -> p3:
     extra_params = []
     constraints = []
     return s
+
+def inherent_constraints() -> p1:
+    description = "Inherent constraints of the game"
+    extra_params = []
+    constraints = [
+        forall(U:Payoff).forall(s2:p2).forall(s3:p3).(U(s1, s2, s3) >= 0)
+    ]
+    return None
 
 def algo():
     s2: p2 = random2()
