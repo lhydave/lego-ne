@@ -29,7 +29,7 @@ class Driver(object):
         max_algo_gen (int): Maximum number of algorithms to be generated using LLM.
             Each round includes algorithm generation and evaluation.
         max_round_mem (int): Maximum number of rounds to be remembered for LLM.
-        restart_threshold (int): when hte number of contiguous duplication is above this threshold, LLM interaction will restart.
+        restart_threshold (int): when the number of contiguous duplication is above this threshold, LLM interaction will restart.
 
     Attributes:
         best_approx (float): Best approximation bound achieved so far.
