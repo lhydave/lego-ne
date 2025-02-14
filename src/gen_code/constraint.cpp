@@ -8,7 +8,12 @@ unique_ptr<exp_node> constraint::num_exp_node::clone(const unordered_map<string,
 
 string constraint::num_exp_node::to_string(const unordered_map<string, string> &name_alias) const
 {
-    return std::to_string(value);
+    auto ret = std::to_string(value);
+    if (ret.find('.') == string::npos)
+    {
+        ret.append(".0");
+    }
+    return ret;
 }
 
 unique_ptr<exp_node> constraint::op_exp_node::clone(const unordered_map<string, string> &instantiated_var) const
@@ -720,17 +725,17 @@ static auto gen_intersect_val()
 {
     auto ret_body =
         cal_add(cal_mul(as_var("a"), cal_sub(as_num(1), as_var("lam"))), cal_mul(as_var("b"), as_var("lam")));
-    return make_unique<func_def::func_def>(optimization_tree::intersect_val_func_name,
-                                           vector<string>{"a", "b", "lam"}, std::move(ret_body));
+    return make_unique<func_def::func_def>(optimization_tree::intersect_val_func_name, vector<string>{"a", "b", "lam"},
+                                           std::move(ret_body));
 }
 
 // generate the maximum term of i,j
 static auto gen_max_intersect(int i, int j, int num_player)
 {
     auto if_cond_1 = cal_or(le(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
-                             ge(as_var(format("varb{}", i)), as_var(format("varb{}", j))));
+                            ge(as_var(format("varb{}", i)), as_var(format("varb{}", j))));
     auto if_cond_2 = cal_or(ge(as_var(format("vara{}", i)), as_var(format("vara{}", j))),
-                             le(as_var(format("varb{}", i)), as_var(format("varb{}", j))));
+                            le(as_var(format("varb{}", i)), as_var(format("varb{}", j))));
     auto if_cond = cal_and(std::move(if_cond_1), std::move(if_cond_2));
 
     vector<unique_ptr<func_def::exp_node>> max_list;

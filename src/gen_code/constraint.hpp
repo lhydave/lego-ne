@@ -57,9 +57,9 @@ class exp_node
 class num_exp_node : public exp_node
 {
   public:
-    int value;
+    double value;
 
-    num_exp_node(int value) : value(value)
+    num_exp_node(double value) : value(value)
     {
         type = exp_type::NUM;
     }
