@@ -93,6 +93,15 @@ legone::payoff_exp_node::payoff_exp_node(const string &payoff_name, vector<strin
     : payoff_name(payoff_name), strategies(std::move(strategies))
 {
     type = exp_type::PAYOFF;
+    for (auto &strategy : this->strategies) // avoid conflict with the real parameters
+    {
+        strategy = "#" + strategy;
+    }
+    // Also add # to the payoff_name if it's not in the form Uk (k > 0)
+    if (!is_payoff(payoff_name)) {
+        this->payoff_name = "#" + payoff_name;
+    }
+    type = exp_type::PAYOFF;
 }
 
 void legone::payoff_exp_node::display(ostream &os) const
@@ -152,6 +161,10 @@ legone::f_val_exp_node::f_val_exp_node(const string &f_name, vector<string> stra
     : f_name(f_name), strategies(std::move(strategies))
 {
     type = exp_type::F_VAL;
+    for (auto &strategy : this->strategies) // avoid conflict with the real parameters
+    {
+        strategy = "#" + strategy;
+    }
 }
 
 void legone::f_val_exp_node::display(ostream &os) const
@@ -282,6 +295,18 @@ legone::constraint_node::constraint_node(vector<tuple<string, basic_type>> quant
                                          unique_ptr<exp_node> right_exp, comp_op op)
     : quantifiers(std::move(quantifiers)), left_exp(std::move(left_exp)), right_exp(std::move(right_exp)), op(op)
 {
+    for (auto &quantifier : this->quantifiers) // avoid conflict with the real parameters
+    {
+        auto &q_name = std::get<0>(quantifier);
+        auto &q_type = std::get<1>(quantifier);
+        
+        // Check if quantifier name is of form Uk where k is an integer >= 0, which is not allowed for Payoff quantifiers
+        if (q_type == basic_type::Payoff and is_payoff(q_name))
+            {
+                throw std::runtime_error(format("Payoff quantifier cannot use the name '{}' as it's reserved for player payoff functions", q_name));
+            }
+        std::get<0>(quantifier) = "#" + q_name;
+    }
 }
 
 void legone::constraint_node::walk(SymTab &sym_tab, bool print)
@@ -327,10 +352,12 @@ void legone::constraint_node::walk(SymTab &sym_tab, bool print)
     {
         if (quantifiers.size() > 0)
         {
-            std::cout << "\t\tquantifiers: " << std::get<0>(quantifiers.at(0));
+            std::cout << "\t\tquantifiers: " << std::get<0>(quantifiers.at(0)) << " : "
+                      << static_cast<int>(std::get<1>(quantifiers.at(0)));
             for (auto i = 1; i < quantifiers.size(); i++)
             {
-                std::cout << ", " << std::get<0>(quantifiers.at(i));
+                std::cout << ", " << std::get<0>(quantifiers.at(i)) << " : "
+                          << static_cast<int>(std::get<1>(quantifiers.at(i)));
             }
             std::cout << std::endl;
         }
@@ -596,6 +623,24 @@ legone::operation_node::operation_node(const string &name, vector<tuple<string, 
                                      "type of an operation");
         }
         rets.push_back(std::make_tuple(ret_names[i], ret_types[i]));
+    }
+    // Add # prefix to ret_names and check for reserved payoff names
+    for (auto i = 0; i < ret_names.size(); i++) {
+        auto& [ret_name, ret_type] = rets[i];
+        // Check if return name is of form Uk where k is an integer >= 0
+        if (is_payoff(ret_name)) {
+            throw std::runtime_error(format("Return value cannot use the name '{}' as it's reserved for player payoff functions", ret_name));
+        }
+        ret_name = "#" + ret_name;
+    }
+
+    // Add # prefix to fparams and check for reserved payoff names
+    for (auto& [param_name, param_type] : this->fparams) {
+        // Check if parameter name is of form Uk where k is an integer >= 0, which is not allowed for Payoff parameters
+        if (param_type == basic_type::Payoff && is_payoff(param_name)) {
+            throw std::runtime_error(format("Payoff parameter cannot use the name '{}' as it's reserved for player payoff functions", param_name));
+        }
+        param_name = "#" + param_name;
     }
 }
 
