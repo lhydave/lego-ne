@@ -17,7 +17,7 @@ parser: legone_parser.yy
 	$(YACC) $(YACCDEBUG) -d -o $(PARSER_NAME).cpp legone_parser.yy
 
 lexer: legone_lexer.ll
-	$(LEX) -o $(LEXER_NAME).cpp legone_lexer.ll
+	$(LEX) -o$(LEXER_NAME).cpp legone_lexer.ll
 
 clean:
 	rm -f compiler *.output *.out *.S *.m *.py
