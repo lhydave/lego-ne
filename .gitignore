@@ -19,3 +19,4 @@ __pycache__
 ._.pytest_cache
 src/lex.yy.c
 src/compiler.exe
+src/__eval_temp.legone
