@@ -135,6 +135,33 @@ def ZeroSumNE3(s3: p3, U: Payoff) -> List[p1, p2]:
         forall(y:p2).(U(x_star,y,s3)>=U(x_star,y_star,s3))
     ]
     return x_star, y_star
+
+def TwoPlayerSOTA3(s3: p3) -> List[p1, p2]:
+    description = "Two-player SOTA algorithms for players 1 and 2 with fixed player 3 strategy"
+    extra_params = []
+    constraints = [
+        f1(x1,y1,s3)<=1/3,
+        f2(x2,y2,s3)<=1/3
+    ]
+    return x1, y1
+
+def TwoPlayerSOTA2(s2: p2) -> List[p1, p3]:
+    description = "Two-player SOTA algorithms for players 1 and 3 with fixed player 2 strategy"
+    extra_params = []
+    constraints = [
+        f1(x1,s2,z1)<=1/3,
+        f3(x2,s2,z2)<=1/3
+    ]
+    return x1, z1
+
+def TwoPlayerSOTA1(s1: p1) -> List[p2, p3]:
+    description = "Two-player SOTA algorithms for players 2 and 3 with fixed player 1 strategy"
+    extra_params = []
+    constraints = [
+        f2(s1,y1,z1)<=1/3,
+        f3(s1,y2,z2)<=1/3
+    ]
+    return y1, z1
 """
 
 INHERENT_CONSTRAINTS = r"""
@@ -181,11 +208,10 @@ You need to follow the following instructions:
     5. Each assignment statement be given a type annotation, e.g., `x1: p1, x2: p2, y1: p1, y2: p2 = StationaryPoint(x_init)`, here `p1` and `p2` are necessary.
     6. You must follow the type annotations of building blocks when calling them.
     7. You must not provide the return statement, as the compiler will automatically combining all constructed strategies to obtain the return.
-    8. The more complex constraints a building block has, the more powerful it is to produce a better approximation bound.
-    9. Break symmetry may help, i.e., you can do different things on different players.
-    10. You can only output the `def algo():` statements in python code block.
-    11. You must use at least one time `StationaryPoint` building block.
-    12. Don't produce duplicate algorithms in new rounds.
+    8. Break symmetry may help, i.e., you can do different things on different players.
+    9. You can only output the `def algo():` statements in python code block.
+    10. Don't produce duplicate algorithms in new rounds.
+    11. TwoPlayerSOTA is very good to use.
 
 Provided building blocks: 
 {BUILDING_BLOCKS}
@@ -196,8 +222,8 @@ Sample output:
 Your output algorithm starts here:
 """
 
-COMPILE_ERROR_PROMPT: Callable[[str], str] = (
-    lambda err_msg: f"""Your code has caused a compile error. The error message is here:
+def COMPILE_ERROR_PROMPT(err_msg: str) -> str:
+    return f"""Your code has caused a compile error. The error message is here:
 {err_msg}
 
 Remember:
@@ -207,17 +233,15 @@ Remember:
 3. You can only define `algo()` using static single assignments (SSAs), that is, returning with a function calling. E.g., `x1: p1, x2: p2, y1: p1, y2: p2 = StationaryPoint(x_init)`. Any other code is not allowed, for example, you cannot write `x1: p1, x2: p2, _, _ = StationaryPoint(x_init)` or `x1: p1, x2: p2 = StationaryPoint(x_init)[0:2]`. Also, nested callings and direct assignment (e.g., `x: p1=y`) are prohibited.
 4. You must follow the type annotations of building blocks when calling them.
 5. Breaking symmetry may help, i.e., you can apply very different building blocks on different players.
-6. You must use at least one time `StationaryPoint` building block.
-7. Be brave to use building blocks that are different from previous ones.
-8. Don't produce duplicate algorithms in new rounds.
-
+6. Be brave to use building blocks that are different from previous ones.
+7. Don't produce duplicate algorithms in new rounds.
+8. TwoPlayerSOTA is very good to use.
 
 Your new output algorithm starts here:
 """
-)
 
-APPROX_PROMPT: Callable[[float], str] = (
-    lambda approx: f"""Your provided code has an approximation $\\epsilon$ of {str(approx)}
+def APPROX_PROMPT(approx: float) -> str:
+    return f"""Your provided code has an approximation $\\epsilon$ of {str(approx)}
 
 Remember:
 
@@ -226,10 +250,9 @@ Remember:
 3. You can only define `algo()` using static single assignments (SSAs), that is, returning with a function calling. E.g., `x1: p1, x2: p2, y1: p1, y2: p2 = StationaryPoint(x_init)`. Any other code is not allowed, for example, you cannot write `x1: p1, x2: p2, _, _ = StationaryPoint(x_init)` or `x1: p1, x2: p2 = StationaryPoint(x_init)[0:2]`. Also, nested callings and direct assignment (e.g., `x: p1=y`) are prohibited.
 4. You must follow the type annotations of building blocks when calling them.
 5. Breaking symmetry may help, i.e., you can apply very different building blocks on different players.
-6. You must use at least one time `StationaryPoint` building block.
-7. Be brave to use building blocks that are different from previous ones.
-8. Don't produce duplicate algorithms in new rounds.
+6. Be brave to use building blocks that are different from previous ones.
+7. Don't produce duplicate algorithms in new rounds.
+8. TwoPlayerSOTA is very good to use.
 
 Try to improve the bound! Your new output algorithm starts here:
 """
-)
