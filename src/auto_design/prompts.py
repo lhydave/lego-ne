@@ -141,7 +141,7 @@ def TwoPlayerSOTA3(s3: p3) -> List[p1, p2]:
     extra_params = []
     constraints = [
         f1(x1,y1,s3)<=1/3,
-        f2(x2,y2,s3)<=1/3
+        f2(x1,y1,s3)<=1/3
     ]
     return x1, y1
 
@@ -150,7 +150,7 @@ def TwoPlayerSOTA2(s2: p2) -> List[p1, p3]:
     extra_params = []
     constraints = [
         f1(x1,s2,z1)<=1/3,
-        f3(x2,s2,z2)<=1/3
+        f3(x1,s2,z1)<=1/3
     ]
     return x1, z1
 
@@ -159,7 +159,7 @@ def TwoPlayerSOTA1(s1: p1) -> List[p2, p3]:
     extra_params = []
     constraints = [
         f2(s1,y1,z1)<=1/3,
-        f3(s1,y2,z2)<=1/3
+        f3(s1,y1,z1)<=1/3
     ]
     return y1, z1
 """

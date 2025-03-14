@@ -388,6 +388,9 @@ unique_ptr<exp_node> optimization_tree::legone_ast_walk(const unique_ptr<legone:
         case legone::op_exp_node::op_type::MUL:
             op_type = op_exp_node::op_type::MUL;
             break;
+        case legone::op_exp_node::op_type::DIV:
+            op_type = op_exp_node::op_type::DIV;
+            break;
         default:
             throw std::runtime_error("Unsupported operation type");
         }
