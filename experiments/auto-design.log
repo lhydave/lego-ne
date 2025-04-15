@@ -1,6 +1,5 @@
 Initializing LLMInteractor with the following LLM configuration:
 
-API Key: a1cd52ed-c199-4813-b7fa-afbdd9b85836
 Base URL: https://ark.cn-beijing.volces.com/api/v3
 Model: N/A
 temperature: 0.8
