@@ -56,7 +56,6 @@ class LLMInteractor(object):
         self.logger(
             "\033[1;95mInitializing LLMInteractor with the following LLM configuration:\033[0m\n"
         )
-        self.logger(f"API Key: {llm_config.api_key}")
         self.logger(f"Base URL: {llm_config.base_url}")
         self.logger(f"Model: {llm_config.model}")
         self.logger(f"temperature: {llm_config.temperature}")
