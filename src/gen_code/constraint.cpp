@@ -387,6 +387,7 @@ unique_ptr<exp_node> optimization_tree::legone_ast_walk(const unique_ptr<legone:
             break;
         case legone::op_exp_node::op_type::MUL:
             op_type = op_exp_node::op_type::MUL;
+            break;
         case legone::op_exp_node::op_type::DIV:
             op_type = op_exp_node::op_type::DIV;
             break;
