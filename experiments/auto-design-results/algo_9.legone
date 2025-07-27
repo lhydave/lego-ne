@@ -1,5 +1,0 @@
-# This algorithm is generated at round 11, with approximation bound 0.3393328
-def algo():
-    x1: p1, x2: p2, y1: p1, y2: p2 = StationaryPoint()
-    x3: p1 = EqMix1(x1, y1)
-    y3: p2 = Random2()

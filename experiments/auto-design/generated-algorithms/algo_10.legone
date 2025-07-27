@@ -1,0 +1,9 @@
+# This algorithm is generated at round 12, with approximation bound 0.8000007
+def algo():
+    z: p3 = Random3()
+    x_zs: p1, y_zs: p2 = ZeroSumNE3(z, U1 + U2)
+    x_sota: p1, y_sota: p2 = TwoPlayerSOTA3(z)
+    x_mix: p1 = EqMix1(x_zs, x_sota)
+    y_mix: p2 = EqMix2(y_zs, y_sota)
+    z_br: p3 = BestResponse3(x_mix, y_mix)
+    z_mix: p3 = EqMix3(z, z_br)

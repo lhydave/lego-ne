@@ -1,0 +1,10 @@
+# This algorithm is generated at round 4, with approximation bound 0.6000009000000001
+def algo():
+    x: p1 = Random1()
+    y: p2, z: p3 = TwoPlayerSOTA1(x)
+    x_br: p1 = BestResponse1(y, z)
+    y_br: p2 = BestResponse2(x, z)
+    z_br: p3 = BestResponse3(x, y)
+    x_mix: p1 = EqMix1(x, x_br)
+    y_mix: p2 = EqMix2(y, y_br)
+    z_mix: p3 = EqMix3(z, z_br)

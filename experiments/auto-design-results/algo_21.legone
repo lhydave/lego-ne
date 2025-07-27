@@ -1,5 +1,0 @@
-# This algorithm is generated at round 45, with approximation bound 0.3393303
-def algo():
-    x1: p1, x2: p2, y1: p1, y2: p2 = StationaryPoint()
-    br1: p1 = BestResponse1(x2)
-    br2: p2 = BestResponse2(x1)

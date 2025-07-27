@@ -1,0 +1,8 @@
+# This algorithm is generated at round 11, with approximation bound 0.5000009
+def algo():
+    z: p3 = Random3()
+    xs: p1, ys: p2, w: p1, z_dual: p2 = StationaryPoint3(z)
+    x_mix: p1 = EqMix1(xs, w)
+    y_mix: p2 = EqMix2(ys, z_dual)
+    z_br: p3 = BestResponse3(x_mix, y_mix)
+    z_mix: p3 = EqMix3(z, z_br)
