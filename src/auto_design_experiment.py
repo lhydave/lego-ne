@@ -14,8 +14,8 @@ llm_config = LLMConfig(
 )
 
 compiler_path = "./compiler.exe"
-result_store_path = "../experiments/auto-design-results"
-log_path = "../experiments/auto-design.log"
+result_store_path = "../experiments/auto-design/generated-algorithms"
+log_path = "../experiments/auto-design/auto-design.log"
 
 max_algo_gen = 10
 max_round_mem = 50

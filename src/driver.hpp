@@ -6,7 +6,6 @@
 #include "ast.hpp"
 #include "gen_code/constraint.hpp"
 #include "gen_code/mathematica.hpp"
-#include "gen_code/Z3.hpp"
 #include <map>
 #include <memory>
 #include <fstream>
@@ -51,14 +50,6 @@ public:
 	string mathematica_code;
 	bool print_mathematica_code;
 	void gen_mathematica_code();
-
-	// generate Z3 code
-	unique_ptr<Z3::generator> Z3_gen;
-	string Z3_filename;
-	string Z3_code;
-	double bound_to_prove;
-	bool print_Z3_code;
-	void gen_Z3_code();
 }; // class driver
 
 #endif // LEGO_DRIVER_HPP
