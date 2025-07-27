@@ -1,0 +1,5 @@
+# This algorithm is generated at round 1, with approximation bound 0.333932
+def algo():
+    xs: p1, ys: p2, w: p1, z: p2 = StationaryPoint()
+    x_mix: p1 = EqMix1(xs, w)
+    y_mix: p2 = EqMix2(ys, z)

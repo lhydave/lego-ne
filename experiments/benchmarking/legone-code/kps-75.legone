@@ -1,0 +1,27 @@
+num_players = 2
+
+def MaxPayoff(U: Payoff) -> List[p1, p2]:
+    description = "Maximize the payoff U"
+    extra_params = []
+    constraints = [
+        forall(x:p1).forall(y:p2).(U(x,y)<=U(x1,y1))
+    ]
+    return x1, y1
+
+def inherent_constraints() -> p1:
+    description = "Inherent constraints"
+    extra_params = []
+    constraints = [
+        forall(x1:p1).forall(x2:p1).forall(y:p2).(f1(x1,y)-f1(x2,y)==U1(x2,y)-U1(x1,y)),
+        forall(x:p1).forall(y1:p2).forall(y2:p2).(f2(x,y1)-f2(x,y2)==U2(x,y2)-U2(x,y1)),
+        forall(x:p1).forall(y:p2).(f1(x,y)+U1(x,y)<=1),
+        forall(x:p1).forall(y:p2).(f2(x,y)+U2(x,y)<=1),
+        forall(x:p1).forall(y:p2).(f1(x,y)>=0),
+        forall(x:p1).forall(y:p2).(f2(x,y)>=0),
+        forall(x:p1).forall(y:p2).forall(U:Payoff).(U(x,y)>=0)
+    ]
+    return None
+
+def algo():
+    x1:p1, y1:p2 = MaxPayoff(U1)
+    x2:p1, y2:p2 = MaxPayoff(U2)

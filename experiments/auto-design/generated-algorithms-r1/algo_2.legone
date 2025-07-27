@@ -1,0 +1,8 @@
+# This algorithm is generated at round 1, with approximation bound 0.333333
+    xs: p1, ys: p2, w: p1, z: p2 = StationaryPoint()
+    x_mix: p1 = EqMix1(xs, w)
+    y_mix: p2 = EqMix2(ys, z)
+    a1: p1 = BestResponse1(y_mix)
+    b2: p2 = BestResponse2(x_mix)
+    x_final: p1 = EqMix1(x_mix, a1)
+    y_final: p2 = EqMix2(y_mix, b2)
