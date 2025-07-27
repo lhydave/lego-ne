@@ -5,9 +5,19 @@ int main(int argc, char *argv[])
 {
     driver drv;
     string filename;
-    bool proof_mode = false; // default only compute a bound
     for (int i = 1; i < argc; ++i)
-        if (argv[i] == std::string("-p"))
+        if (argv[i] == std::string("-h") || argv[i] == std::string("--help"))
+        {
+            std::cout << "Usage: legone [options] filename" << std::endl;
+            std::cout << "Options:" << std::endl;
+            std::cout << "  -p              Enable parser tracing." << std::endl;
+            std::cout << "  -s              Enable scanner tracing." << std::endl;
+            std::cout << "  -v              Verbose output. Print AST and Mathematica code to stdout." << std::endl;
+            std::cout << "  -o <file>       Redirect Mathematica code output to <file>." << std::endl;
+            std::cout << "  -h, --help      Display this help message." << std::endl;
+            return 0;
+        }
+        else if (argv[i] == std::string("-p"))
             drv.trace_parsing = true;
         else if (argv[i] == std::string("-s"))
             drv.trace_scanning = true;
@@ -15,34 +25,12 @@ int main(int argc, char *argv[])
         {
             drv.print_ast = true;
             drv.print_mathematica_code = true;
-            drv.print_Z3_code = true;
-        }
-        else if (argv[i] == std::string("-b")) // given the bound, run in proof mode
-        {
-            if (i + 1 < argc)
-            {
-                try
-                {
-                    drv.bound_to_prove = std::stod(argv[i + 1]);
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << "invalid bound: " << e.what() << std::endl;
-                }
-                proof_mode = true;
-                i++;
-            }
-            else
-            {
-                std::cerr << "approximation bound must be provided" << std::endl;
-            }
         }
         else if (argv[i] == std::string("-o"))
         {
             if (i + 1 < argc)
             {
                 drv.mathematica_filename = argv[i + 1];
-                drv.Z3_filename = argv[i + 1];
                 i++;
             }
             else
@@ -80,25 +68,12 @@ int main(int argc, char *argv[])
         drv.optimization_ast.print_constraints(std::cout, true);
         std::cout << "Done" << std::endl;
     }
-    if (proof_mode)
+    drv.gen_mathematica_code();
+    if (drv.print_mathematica_code)
     {
-        drv.gen_Z3_code();
-        if (drv.print_Z3_code)
-        {
-            std::cout << std::endl << "printing Z3 code..." << std::endl;
-            std::cout << drv.Z3_code;
-            std::cout << "Done" << std::endl;
-        }
-    }
-    else
-    {
-        drv.gen_mathematica_code();
-        if (drv.print_mathematica_code)
-        {
-            std::cout << std::endl << "printing mathematica code..." << std::endl;
-            std::cout << drv.mathematica_code;
-            std::cout << "Done" << std::endl;
-        }
+        std::cout << std::endl << "printing mathematica code..." << std::endl;
+        std::cout << drv.mathematica_code;
+        std::cout << "Done" << std::endl;
     }
     return 0;
 }

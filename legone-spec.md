@@ -34,9 +34,9 @@ quantifier                  ::= "forall" "(" (strategy_fparam | payoff_fparam) "
 constraint                  ::= exp ("==" | ">=" | "<=") exp;
 exp                         ::= add_exp;
 add_exp                     ::= mul_exp | add_exp ("+" | "-") mul_exp;
-mul_exp                     ::= primary_exp | mul_exp "*" val;
+mul_exp                     ::= primary_exp | mul_exp ("*" | "/") val;
 primary_exp                 ::= val | "(" exp ")";
-val                         ::= number | payoff_val | f_val | param;
+val                         ::= number_literal | payoff_val | f_val | param;
 payoff_val                  ::= IDENTIFIER "(" strategy_list ")";
 f_val                       ::= f_name "(" strategy_list ")";
 param                       ::= IDENTIFIER;
@@ -53,13 +53,14 @@ operation_rparam            ::= strategy_rparam | payoff_rparam;
 strategy_rparam             ::= IDENTIFIER;
 payoff_rparam               ::= linear_combination;
 linear_combination          ::= linear_combination {("+" | "-") linear_term} | linear_term;
-linear_term                 ::= [number "*"] payoff_name;
+linear_term                 ::= [number_literal "*"] payoff_name;
 payoff_name                 ::= "U" number;
 
 ret_type                    ::= "List" "[" player_type {"," player_type} "]" | player_type;
 player_type                 ::= "p" number;
 payoff_type                 ::= "Payoff";
 number                      ::= INT;
+number_literal              ::= INT | FLOAT;
 ```
 
 ## Terminal Symbols
@@ -88,6 +89,14 @@ Integers are denoted by `INT`, which is a sequence of digits, e.g., `123`. We on
 
 ```ebnf
 INT ::= [0-9]+;
+```
+
+### Floats
+
+Floats are denoted by `FLOAT`, which is a sequence of digits with a decimal point, e.g., `1.23`.
+
+```ebnf
+FLOAT ::= [0-9]+ "." [0-9]+;
 ```
 
 ### Identifiers
@@ -136,7 +145,7 @@ The `num_players` declaration specifies the number of players in the game. It is
 
 ### Operation Definitions
 
-An operation definition specifies the basic operations of the algorithm, such as computing the best response, computing an NE for a two-layer zero-sum game, and mixing two strategies. It has the following components:
+An operation definition specifies the building blocks of the algorithm, such as computing the best response, computing an NE for a two-layer zero-sum game, and mixing two strategies. It has the following components:
 - `operation_name`: The name of the operation.
 - `operation_fparams`: The formal parameters of the operation, which are either strategies or payoffs. They should be declared with their types. The type of a strategy is the number label of the player, and the type of a payoff is `Payoff`.
 - `ret_type`: The return type of the operation, which is either a list of player types or a player type.
@@ -146,9 +155,8 @@ An operation definition specifies the basic operations of the algorithm, such as
   - `constraints_stmt`: The constraints of the operation, which are a list of strings, each of which is a constraint. The construction of constraints will be specified later.
   - `return_stmt`: The return statement of the operation, which is a list of strategies, each of which is a strategy with its player type.
 
-There are two built-in operations that can be used in the algorithm:
+There is a built-in operation that will be automatically added at the end of the algorithm:
 - `optimal_mix`: This operation computes the optimal mixing of the given strategies. To obey the syntax, the parameters of this operation should be a list of strategies, and the return type should be a list of strategies, which consists of a valid strategy profile. The compiler should check that each player has at least one strategy as input.
-- `argmin`: Given a sequence of strategy profiles, this operation computes the one with minimum approximation. To obey the syntax, the parameters of this operation should be a list of strategy profiles in the following order: player 1's strategy in profile 1, player 2's strategy in profile 1, ..., player n's strategy in profile 1, player 1's strategy in profile 2, player 2's strategy in profile 2, ..., player n's strategy in profile 2, ..., and the return type should be a list of strategies, which consists of a valid strategy profile.
 
 ### Inherent Constraints
 
@@ -156,21 +164,19 @@ When an operation named ``inherent_constraints`` is defined, the compiler will r
 
 ### Constraint Specification
 
-A constraint is a first-order universal arithmetic formula, which is a string enclosed in double quotes. It is constructed using plus, minus, and multiplication operations, and comparison operations such as `==`, `>=`, and `<=`. The operands of the operations are either numbers, a realized payoff, or an $f$ value. A realized payoff is the evaluation of a payoff function with a list of strategies. An $f$ value is the evaluation of the approximation/incentive/regret function of player `k` with a list of strategies. Thus, they should be treated as a function call with a list of strategies as its arguments.
+A constraint is a first-order universal arithmetic formula, which is a string enclosed in double quotes. It is constructed using plus, minus, multiplication, and division operations, and comparison operations such as `==`, `>=`, and `<=`. The operands of the operations are either number literals, a realized payoff, or an $f_k$ value. A realized payoff is the evaluation of a payoff function with a list of strategies. An $f_k$ value is the evaluation of the approximation/incentive/regret function of player `k` with a list of strategies. Thus, they should be treated as a function call with a list of strategies as its arguments.
 
 All bounded variables in the constraints are quantified by `forall` quantifiers. These variables should not appear in the extra parameters or return statements of the operation. 
 
 By default, payoff functions can be used in the constraints without being declared in the formal parameters of the operation. These functions are in the form of `Uk(s1, s2, ..., sn)`, where `Uk` is the payoff function of player `k`, and `s1, s2, ..., sn` are the strategies of the players. The compiler will automatically identify these symbols and handle them properly.
 
-The $f$ values is in the form of `fk(s1, s2, ..., sn)`, where `fk` is the approximation/incentive/regret function of player `k`, and `s1, s2, ..., sn` are the strategies of the players. The compiler will automatically identify these symbols and handle them properly.
+The $f_k$ values is in the form of `fk(s1, s2, ..., sn)`, where `fk` is the approximation/incentive/regret function of player `k`, and `s1, s2, ..., sn` are the strategies of the players. The compiler will automatically identify these symbols and handle them properly.
 
 ### Algorithm Definition
 
 An algorithm definition specifies the main algorithm for the approximate NE. It is composed of a sequence of construction statements, each of which creates a list of strategies by calling an operation. The algorithm will return the list of strategies as the output, which is a valid strategy profile. 
 
-Note that the algorithm can lack the return statement. In this case, the compiler will automatically add the `optimal_mix` operation to the end of the algorithm on all constructed strategies, and return the result. It is recommended to not write the return statement in the algorithm, and let the compiler automatically add the `optimal_mix` operation. This is because these operations will generate great overhead in the constraint programming, and the user should be aware of this.
-
-Thus, if you want to use the `optimal_mix` and `argmin` operations, you ought to follow the following rules: Only one of `optimal_mix` and `argmin` operations can be used in the algorithm. Either of them can be only used once, and must be used at the end of the algorithm.
+Note that the algorithm should NOT have a return statement. The compiler will automatically add the `optimal_mix` operation to the end of the algorithm on all constructed strategies, and return the result.
 
 ## Keywords
 
@@ -188,14 +194,12 @@ All the keywords in LegoNE are hard keywords, which means they cannot be used as
 - `constraints`
 - `return`
 - `optimal_mix`
-- `argmin`
 
 ## Example
 
 The following is an example of a LegoNE program that specifies an approximate NE algorithm for a three-player game:
 
 ```python
-
 num_players = 3
 
 def best_response1(U: Payoff, s2: p2, s3: p3) -> p1:
@@ -246,8 +250,10 @@ def algo():
     s11: p1 = best_response1(U1, s2, s3)
     s12: p1 = random1()
     s1: p1 = eqmix1(s11, s12)
-    ret1: p1, ret2: p2, ret3: p3 = OptMix(s1,s11,s12,s2,s3) # by default we will add this operation if the return statement is missing
-    return ret1, ret2, ret3
+
+    # the compiler will automatically add the following statements
+    # ret1: p1, ret2: p2, ret3: p3 = OptMix(s1,s11,s12,s2,s3) # by default we will add this operation
+    # return ret1, ret2, ret3
 ```
 
 The compiler should be able to parse the program and generate the corresponding constraint programming in Mathematica code.
