@@ -47,4 +47,4 @@ def inherent_constraints() -> p1:
 def algo():
     z1: p3 = Random3()
     x1: p1, y1: p2 = TwoPlayerSOTA3(z1)
-    z1: p3 = BestResponse3(x1, y1)
+    z2: p3 = BestResponse3(x1, y1)
