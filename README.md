@@ -77,6 +77,9 @@ If the build is successful, you will see a `compiler` executable in the `src` di
 make clean
 ```
 
+## How to Write LegoNE Code
+LegoNE code is written in a python-like language. You can learn how to write LegoNE code from the `legone-spec.md` file in the root directory of the project. This file contains the specification of the LegoNE programming language, including the syntax and semantics of the language, as well as the example LegoNE code.
+
 ## Usage of LegoNE Compiler
 
 The LegoNE code is written in a file with the extension `.legone`. 
@@ -97,24 +100,96 @@ For example, if you want to generate Mathematica code for the `example.legone` f
 
 ## Usage of LegoNE Auto-Design Module
 
-Every useful API has detailed documentations in the corresponding python file.
+The LegoNE auto-design module leverages Large Language Models (LLMs) to automatically generate and refine approximate Nash Equilibria (NE) algorithms. This section provides a detailed guide on how to configure and run this module.
 
-You can find a python example file `auto_design_experiment.py` in the `src` directory. This is an example file as well as the experiment file that demonstrates how to use the LegoNE auto-design module to automatically design approximate NE algorithms. You can modify the example file for your own experiments.
+### Configuration
 
-To run the example file, you can run the following command in the `src` directory:
+The primary configuration for the auto-design module is handled within the `src/auto_design_experiment.py` file. Before running the experiment, you must configure several parameters.
 
+1.  **LLM Configuration**: You need to provide your own LLM API credentials. Open `src/auto_design_experiment.py` and locate the `llm_config` object.
+
+    ```python
+    llm_config = LLMConfig(
+        api_key="YOUR API KEY HERE",
+        base_url="YOUR BASE URL HERE",
+        model="YOUR MODEL NAME HERE",
+        temperature=0.8,
+    )
+    ```
+
+    Replace the placeholder values:
+    *   `api_key`: Your secret API key for the LLM service.
+    *   `base_url`: The base URL for the API endpoint.
+    *   `model`: The specific model name you intend to use.
+
+2.  **Path Configuration**: The script defines paths for the compiler, result storage, and logs. The default values are set relative to the `src` directory. You can modify them if your project structure is different.
+
+    *   `compiler_path`: Path to the compiled `compiler`. Default is `./compiler`.
+    *   `result_store_path`: Directory to save the generated algorithms. Default is `../experiments/auto-design/generated-algorithms`.
+    *   `log_path`: Path to the log file. Default is `../experiments/auto-design/auto-design.log`.
+
+3.  **Experiment Parameters**: You can also tune the following parameters for the experiment:
+    *   `max_algo_gen`: The maximum number of algorithms the module will attempt to generate.
+    *   `max_round_mem`: The number of previous interaction rounds to keep in memory for the LLM's context.
+    *   `restart_threshold`: The number of consecutive failures or non-improvements before the generation process is restarted.
+
+### Running the Auto-Design Experiment
+
+Once you have configured `auto_design_experiment.py`, you can run the experiment.
+
+1.  Navigate to the `src` directory from the project's root folder:
+    ```bash
+    cd src
+    ```
+
+2.  Execute the Python script:
+    ```bash
+    python3 auto_design_experiment.py
+    ```
+
+### Viewing the Results
+
+*   **Generated Algorithms**: The generated LegoNE algorithm files (with a `.legone` extension) and their calculated approximation bounds will be stored in the `experiments/auto-design/generated-algorithms` directory.
+*   **Logs**: You can monitor the progress and see detailed logs of the interaction between the driver and the LLM in the `experiments/auto-design/auto-design.log` file. This is useful for debugging and understanding the generation process.
+
+## Reproducing Experiment Results
+
+### Reproducing Benchmarking Results
+
+To reproduce the benchmarking experiment results, you can run the benchmarking scripts provided in the `experiments/benchmarking` directory.
+
+If you wish to reproduce the compilation from LegoNE code to Mathematica code, you should first follow the instructions in the "Usage of LegoNE Compiler" section to compile the files located in `experiments/benchmarking/legone-code` into the `experiments/benchmarking/mathematica-code` directory. Please note that some of the Mathematica code in this directory has been manually modified or constructed to align with the proofs in the original paper, or due to limitations of the compiler. Then, if you need to reproduce running time, you have to manually add the timing code to the Mathematica code in the `experiments/benchmarking/mathematica-code` directory. 
+
+If you already have the Mathematica code generated from the LegoNE code, you can follow the steps below to run the benchmarking experiments.
+
+First, navigate to the `experiments/benchmarking` directory:
 ```bash
-python3 auto_design_experiment.py
+cd experiments/benchmarking
 ```
 
-When it is running, you can see all the logs in `auto-design.log` file in the `experiments/auto-design` directory. The generated algorithms and their approximation bounds are stored in the `experiments/auto-design/generated-algorithms` directory.
+Next, run the `run_all.sh` script. This script will execute all the Mathematica code for the experiments. The output of each experiment will be stored in the `analyzer-outputs` directory.
+```bash
+./run_all.sh
+```
+
+After all the experiments are completed, you can run the `data_analyze.sh` script to analyze the results.
+```bash
+./data_analyze.sh
+```
+This script will read the output files from `analyzer-outputs`, calculate the average result and time for each experiment, and save the summary in `analyzer-outputs/summarize.txt`.
+
+You can then view the summarized results in the `analyzer-outputs/summarize.txt` file.
+
+### Reproducing Auto-Design Results
+
+Due to randomness of LLMs, it is almost impossible to reproduce the exact same results of the auto-design module. However, you can rerun the auto-design experiment as described in the "Usage of LegoNE Auto-Design Module" section.
 
 ## Repository Structure
 
 The repository contains the following directories:
 
 - `src`: The source code of the LegoNE compiler and the LegoNE auto-design module.
-- `experiments`: The experiments of the LegoNE compiler, including the LegoNE code, the generated Mathematica code, and the generated Z3 code.
+- `experiments`: Contains files related to experiments, such as benchmarking scripts and outputs, and logs from the auto-design module.
 - `tests`: The test cases of the LegoNE compiler, including the LegoNE code.
 - `legone-spec.md`: The specification of the LegoNE programming language. You can learn how to write LegoNE code from this file.
 - `README.md`: This file.

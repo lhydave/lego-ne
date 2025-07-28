@@ -13,7 +13,7 @@ llm_config = LLMConfig(
     temperature=0.8,
 )
 
-compiler_path = "./compiler.exe"
+compiler_path = "./compiler"
 result_store_path = "../experiments/auto-design/generated-algorithms"
 log_path = "../experiments/auto-design/auto-design.log"
 
