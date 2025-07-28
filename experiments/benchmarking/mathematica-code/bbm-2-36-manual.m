@@ -38,10 +38,12 @@ constraint3 = {Root[1 - 2 # - #^2 + #^3& , 2, 0] <= g1 < 1,
    1 >= g1 >= g2 >= 0, a == 0, 0 <= b <= 1, 0 <= c <= 1 - g1, d == 0, 
    0 <= h2 <= 1, h2 == g2};
 
-(* constraint for optimal mixing operation *)
-optMix[ar_, br_, ac_, bc_] := If[ac <= ar && bc <= br, Min[ar, br], If[ac >= ar && bc >= br, Min[ac, bc], If[ar + bc - ac - br != 0, (ar*bc - ac*br)/(ar + bc - ac - br), Min[Max[ac, bc], Max[ar, br]]]]];
+(* an equivalent constraint for optimal mixing operation *)
+optmix[vara1_, varb1_, vara2_, varb2_] := Piecewise[{
+	{ Min[Min[Max[vara1, vara2], Max[varb1, varb2]], Max[(1 - (vara1 * varb2 - vara2 * varb1) / (vara1 + varb2 - vara2 - varb1)) * vara1 + (vara1 * varb2 - vara2 * varb1) / (vara1 + varb2 - vara2 - varb1) * varb1, (1 - (vara1 * varb2 - vara2 * varb1) / (vara1 + varb2 - vara2 - varb1)) * vara2 + (vara1 * varb2 - vara2 * varb1) / (vara1 + varb2 - vara2 - varb1) * varb2]], ((vara1 > varb1 && vara2 < varb2) || (vara1 < varb1 && vara2 > varb2)) }},
+	Min[Max[vara1, vara2], Max[varb1, varb2]]];
 
-bound = optMix[a, b, c, d];
+bound = optmix[a, b, c, d];
 
 (* solve the approximation bound *)
 branch1 = NMaxValue[{bound, constraint1}, {a, b, c, d, g1, g2, h2}, WorkingPrecision -> 20, AccuracyGoal -> 10, MaxIterations -> 2000];
