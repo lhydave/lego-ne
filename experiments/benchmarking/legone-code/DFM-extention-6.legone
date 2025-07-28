@@ -1,4 +1,4 @@
-num_player = 3
+num_players = 3
 
 def Random3() -> p3:
     description = "Random strategy for player 3"
@@ -29,7 +29,7 @@ def inherent_constraints() -> p1:
     extra_params = []
     constraints = [
         forall(x1:p1).forall(x2:p1).forall(y:p2).forall(z:p3).(f1(x1,y,z)-f1(x2,y,z)==U1(x2,y,z)-U1(x1,y,z)),
-        forall(x:p1).forall(y1:p2).forall(y2:p2).forall(z:p3).(f2(x,y1,z)-f2(x,y2,z)==U2(y2,z)-U2(x,y1,z)),
+        forall(x:p1).forall(y1:p2).forall(y2:p2).forall(z:p3).(f2(x,y1,z)-f2(x,y2,z)==U2(x,y2,z)-U2(x,y1,z)),
         forall(x:p1).forall(y:p2).forall(z1:p3).forall(z2:p3).(f3(x,y,z1)-f3(x,y,z2)==U3(x,y,z2)-U3(x,y,z1)),
         
         forall(x:p1).forall(y:p2).forall(z:p3).(f1(x,y,z)+U1(x,y,z)<=1),
