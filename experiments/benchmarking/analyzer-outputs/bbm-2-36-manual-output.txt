@@ -1,0 +1,25 @@
+=== Run #1 ===
+Optimization result: 0.36391723647394712119879058507449573105`20.
+
+Optimization completed in 1.353007`6.582845036991977 seconds
+
+=== Run #2 ===
+Optimization result: 0.36391723647394712119879058507449573105`20.
+
+Optimization completed in 1.471383`6.619270727499014 seconds
+
+=== Run #3 ===
+Optimization result: 0.36391723647394712119879058507449573105`20.
+
+Optimization completed in 1.348004`6.581236174401025 seconds
+
+=== Run #4 ===
+Optimization result: 0.36391723647394712119879058507449573105`20.
+
+Optimization completed in 1.387678`6.593833696612907 seconds
+
+=== Run #5 ===
+Optimization result: 0.36391723647394712119879058507449573105`20.
+
+Optimization completed in 1.33242`6.576186136446702 seconds
+

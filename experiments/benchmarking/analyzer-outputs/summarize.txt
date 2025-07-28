@@ -1,0 +1,10 @@
+Filename Average_Result Average_Time
+---------------------------------------
+bbm-1-38-output.txt       0.3819659725         11.813931           
+bbm-2-36-manual-output.txt 0.3639172365         1.378498            
+cdffjs-38-output.txt      0.3819659511         65.867858           
+dfm-3333-output.txt       0.3333248823         79.630370           
+dmp-38-output.txt         0.3819644332         31.126141           
+dmp-5-output.txt          0.4999999998         4.310288            
+kps-75-output.txt         0.7499997367         22.551653           
+ts-3393-output.txt        0.3393319667         13.895252           

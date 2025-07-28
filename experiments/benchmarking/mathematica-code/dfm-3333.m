@@ -520,7 +520,7 @@ constraints = {
 };
 
 (* optimization for approximation bounds *)
-result = NMaxValue[{bound, constraints}, {i_U1, i_f1, i_U2, i_f2, h_U1, h_f1, h_U2, h_f2, g_U1, g_f1, g_U2, g_f2, d_U1, d_f1, d_U2, d_f2, b_U1, b_f1, b_U2, b_f2, e_U1, e_f1, e_U2, e_f2, c_U1, c_f1, c_U2, c_f2, f_U1, f_f1, f_U2, f_f2, a_U1, a_f1, a_U2, a_f2, rho}, WorkingPrecision -> 6, AccuracyGoal -> 6, MaxIterations -> 2000];
+result = NMaxValue[{bound, constraints}, {i_U1, i_f1, i_U2, i_f2, h_U1, h_f1, h_U2, h_f2, g_U1, g_f1, g_U2, g_f2, d_U1, d_f1, d_U2, d_f2, b_U1, b_f1, b_U2, b_f2, e_U1, e_f1, e_U2, e_f2, c_U1, c_f1, c_U2, c_f2, f_U1, f_f1, f_U2, f_f2, a_U1, a_f1, a_U2, a_f2, rho}, WorkingPrecision -> 20, AccuracyGoal -> 10, MaxIterations -> 2000];
 
 endTime = AbsoluteTime[];
 elapsed = endTime - startTime;
