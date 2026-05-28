@@ -87,8 +87,19 @@ def test_evaluator_workflow_fail():
         result, str
     ), "Result should be str (error)"
 
-    # On failure, verify error message contains "std::runtime_error"
-    assert(result == "cannot define symbol b1: it was already defined.\n"), "the output of compile error is different from the expected one"
+    # On failure, the feedback should carry the diagnostic, an algorithm-relative
+    # line number, the offending line, and the full numbered algorithm so the LLM
+    # knows exactly which snippet produced the error.
+    assert "cannot define symbol b1: it was already defined." in result, (
+        "the compile error message is missing from the feedback"
+    )
+    assert "line 3" in result, "the feedback should point to algorithm line 3"
+    assert "b1: p2 = BestResponse2(b1)" in result, (
+        "the feedback should quote the offending line"
+    )
+    assert "Your algorithm code (with line numbers):" in result, (
+        "the feedback should include the numbered algorithm for context"
+    )
 
     # Check if temporary files were cleaned up even after error
     assert not Path(evaluator.temp_legone_name).exists(), "Temp LegoNE file should be cleaned up" 

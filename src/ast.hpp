@@ -148,6 +148,7 @@ class construct_stmt_node : public ast_node_base
     vector<tuple<string, basic_type>> rets;
     string operation_name;
     vector<unique_ptr<rparam_node>> rparams;
+    size_t line = 0; // 1-based source line of this statement, 0 if unknown
 
     construct_stmt_node(vector<tuple<string, basic_type>> rets, const string &operation_name,
                         vector<unique_ptr<rparam_node>> rparams);
@@ -163,6 +164,7 @@ class rparam_node : public ast_node_base
         PAYOFF_EXP
     };
     rparam_type type;
+    size_t line = 0; // 1-based source line, 0 if unknown
     virtual ~rparam_node() = default;
 
     virtual void display(ostream &os) const = 0;

@@ -329,6 +329,7 @@ construct_stmts:
 construct_stmt:
   strategy_with_type_list "=" operation_name "(" operation_rparams ")"  {
     $$ = make_unique<construct_stmt_node>(std::move($1), std::move($3), std::move($5));
+    $$->line = @$.begin.line;
   }
 strategy_with_type_list:
   strategy_with_type { 
@@ -355,7 +356,7 @@ operation_rparams:
     $$.insert($$.begin(), std::move($1));
   }
 operation_rparam:
-  linear_combination { 
+  linear_combination {
     if($1.size() == 1 and not is_payoff(std::get<0>($1[0]))) // it is a strategy
     {
       $$ = make_unique<strategy_rparam_node>(std::get<0>($1[0]));
@@ -364,6 +365,7 @@ operation_rparam:
     {
       $$ = make_unique<payoff_exp_rparam_node>(std::move($1));
     }
+    $$->line = @$.begin.line;
   }
 linear_combination:
   linear_term { 

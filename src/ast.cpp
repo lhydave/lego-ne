@@ -1,5 +1,16 @@
 #include "ast.hpp"
 
+namespace
+{
+// Prefix a diagnostic with its source line when known.
+std::string with_line(size_t line, const std::string &msg)
+{
+    if (line == 0)
+        return msg;
+    return std::format("line {}: {}", line, msg);
+}
+} // namespace
+
 void legone::ast_root::walk(SymTab &sym_tab, bool print)
 {
     if (print)
@@ -421,7 +432,7 @@ void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print)
     auto operation_type = sym_tab.get_type(operation_name);
     if (not operation_type)
     {
-        throw std::runtime_error(format("{} is not defined in algo", operation_name, operation_name));
+        throw std::runtime_error(with_line(line, format("{} is not defined in algo", operation_name)));
     }
     OperationType decl_type;
     try
@@ -430,7 +441,7 @@ void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print)
     }
     catch (const std::bad_variant_access &e)
     {
-        throw std::runtime_error(format("{} is not an operation in algo", operation_name));
+        throw std::runtime_error(with_line(line, format("{} is not an operation in algo", operation_name)));
     }
 
     // check the type of real params
@@ -448,13 +459,14 @@ void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print)
             auto current_type = sym_tab.get_type(rparam.strategy_name);
             if (not current_type)
             {
-                throw std::runtime_error(
-                    format("error when calling {}: {} is not defined", operation_name, rparam.strategy_name));
+                throw std::runtime_error(with_line(
+                    line, format("error when calling {}: {} is not defined", operation_name, rparam.strategy_name)));
             }
             if (supposed_type != current_type.value())
             {
-                throw std::runtime_error(format("error when calling {}: {} does not have an expected type",
-                                                operation_name, rparam.strategy_name));
+                throw std::runtime_error(
+                    with_line(line, format("error when calling {}: {} does not have an expected type", operation_name,
+                                           rparam.strategy_name)));
             }
         }
     }
@@ -495,7 +507,9 @@ void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print)
     // def return symbols and check return type
     if (decl_type.ret_type.size() != rets.size())
     {
-        throw std::runtime_error(format("error when calling {}: miss match number of arguments", operation_name));
+        throw std::runtime_error(with_line(
+            line, format("error when calling {}: expected {} return value(s) but {} were assigned", operation_name,
+                         decl_type.ret_type.size(), rets.size())));
     }
     auto print_type = [](const basic_type &ret_type) {
         if (ret_type == basic_type::Payoff)
@@ -514,11 +528,18 @@ void legone::construct_stmt_node::walk(SymTab &sym_tab, bool print)
         auto expected_type = decl_type.ret_type[i];
         if (current_type != expected_type)
         {
-            throw std::runtime_error(
-                format("error when calling {}: return type of {} is different from the expected one", operation_name,
-                       std::get<0>(rets[i])));
+            throw std::runtime_error(with_line(
+                line, format("error when calling {}: return type of {} is different from the expected one",
+                             operation_name, std::get<0>(rets[i]))));
         }
-        sym_tab.def_symbol(std::get<0>(rets[i]), current_type);
+        try
+        {
+            sym_tab.def_symbol(std::get<0>(rets[i]), current_type);
+        }
+        catch (const std::exception &e)
+        {
+            throw std::runtime_error(with_line(line, e.what()));
+        }
     }
 
     if (print)
@@ -593,12 +614,12 @@ void legone::payoff_exp_rparam_node::walk(SymTab &sym_tab, bool print)
         if (not term_type)
         {
             throw std::runtime_error(
-                format("error when using {} as a payoff: {} is not defined", payoff_term, payoff_term));
+                with_line(line, format("error when using {} as a payoff: {} is not defined", payoff_term, payoff_term)));
         }
         if (term_type.value() != "payoff")
         {
-            throw std::runtime_error(
-                format("error when using {} as a payoff: {} is not a payoff function", payoff_term, payoff_term));
+            throw std::runtime_error(with_line(
+                line, format("error when using {} as a payoff: {} is not a payoff function", payoff_term, payoff_term)));
         }
     }
     if (print)

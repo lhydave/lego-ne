@@ -10,6 +10,14 @@ from auto_design.prompts import (
 )
 import subprocess
 import os
+import re
+
+
+# The fixed code the evaluator prepends before the LLM's `algo` snippet.
+# Compiler line numbers are relative to the full file, so we subtract the
+# number of boilerplate lines to map them back onto the LLM's own code.
+_BOILERPLATE = NUM_PLAYER_DECLARE + BUILDING_BLOCKS + INHERENT_CONSTRAINTS
+_BOILERPLATE_LINES = _BOILERPLATE.count("\n")
 
 
 def get_approximation(wolfram_output: str):
@@ -57,6 +65,60 @@ def parse_compiler_error(stderr: str) -> str:
     return f"Unknown compiler error: {stderr}"
 
 
+def add_code_context(err_str: str, algo_code: str) -> str:
+    """Attach the relevant slice of the LLM's algorithm to a compiler error.
+
+    Compiler diagnostics carry line numbers relative to the full generated
+    file (fixed boilerplate + the LLM's `algo` code). The LLM only ever sees
+    its own snippet, so a bare "line 88" is meaningless to it. This:
+      1. maps the file line back to a line of the LLM's algorithm,
+      2. quotes the offending line, and
+      3. appends the full numbered algorithm for context,
+    while hiding the internal temp filename and absolute line numbers.
+    """
+    algo_lines = algo_code.split("\n")
+    numbered = "\n".join(f"{i + 1:>3} | {line}" for i, line in enumerate(algo_lines))
+
+    # Extract a file-relative line number: semantic ("line N:") or syntax
+    # ("<tmp>.legone:N.col").
+    file_line = None
+    m = re.search(r"^line (\d+):", err_str)
+    if m:
+        file_line = int(m.group(1))
+    else:
+        m = re.search(r"\.legone:(\d+)\.\d", err_str)
+        if m:
+            file_line = int(m.group(1))
+
+    if file_line is None:
+        # No location to map; still give the LLM its own code for context.
+        return f"{err_str}\n\nYour algorithm code (with line numbers):\n{numbered}"
+
+    algo_line = file_line - _BOILERPLATE_LINES
+    in_algo = 1 <= algo_line <= len(algo_lines)
+
+    # Hide the internal temp filename and rewrite to algo-relative numbering.
+    err_str = re.sub(
+        r"[^\s:]*__eval_temp\.legone:\d+\.([\d.\-]+):?", r"column \1:", err_str
+    )
+    err_str = re.sub(
+        r"^line \d+:", f"line {algo_line}:" if in_algo else "", err_str
+    ).strip()
+
+    if in_algo:
+        pointer = (
+            f"\n\nThe error is at line {algo_line} of your algorithm:\n"
+            f"    {algo_lines[algo_line - 1].strip()}"
+        )
+    else:
+        pointer = (
+            "\n\n(The error comes from a provided building block, "
+            "not from your algorithm code.)"
+        )
+
+    return f"{err_str}{pointer}\n\nYour algorithm code (with line numbers):\n{numbered}"
+
+
 class Evaluator(object):
     """Evaluates LegoNE code by compiling and calculating approximation bound.
     
@@ -79,6 +141,7 @@ class Evaluator(object):
         logger: Callable[[str], None] = lambda msg: None,
     ):
         self.optimizer_name = optimizer_name
+        self._last_algo_code = ""
         self.temp_legone_name = "__eval_temp.legone"
         self.temp_wolfram_name = "__eval_temp.m"
         self.compiler_args = [
@@ -107,6 +170,7 @@ class Evaluator(object):
 
     def gen_legone_code(self, algo_code: str):
         self.logger("\033[1;95mEvaluator is generating LegoNE code...\033[0m")
+        self._last_algo_code = algo_code
                 # check if both player has at most three strategies
         p1_count = algo_code.replace(" ", "").count(":p1")
         p2_count = algo_code.replace(" ", "").count(":p2")
@@ -143,6 +207,7 @@ class Evaluator(object):
             # Check for errors in the compiler output
             if compiler_process.stderr or compiler_process.returncode != 0:
                 err_str = parse_compiler_error(compiler_process.stderr)
+                err_str = add_code_context(err_str, self._last_algo_code)
                 self.logger(
                     f"\033[1;91mFailed. Evaluator encounters a compile error: {err_str}\033[0m"
                 )

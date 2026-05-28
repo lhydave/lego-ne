@@ -43,8 +43,14 @@ string          \"([^\\\"]|\\.)*\"
   loc.step();
 %}
 
-{comment}         { loc.lines(yyleng); loc.step(); }
-{whitespace}      { loc.step(); }
+{comment}         { loc.lines(1); loc.step(); }
+{whitespace}      {
+                    int newlines = 0;
+                    for (int i = 0; i < yyleng; ++i)
+                      if (yytext[i] == '\n') ++newlines;
+                    if (newlines) loc.lines(newlines);
+                    loc.step();
+                  }
 
 "="               return yy::parser::make_ASSIGN(loc);
 "-"               return yy::parser::make_MINUS(loc);
