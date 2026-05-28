@@ -20,6 +20,43 @@ def get_approximation(wolfram_output: str):
     return float(last_line[0:9]) + 1e-6
 
 
+def parse_compiler_error(stderr: str) -> str:
+    """Extract a precise, LLM-actionable message from the compiler's stderr.
+
+    The compiler emits structured prefixes:
+      - "Syntax error: ..."           (lexer/parser, user-fixable)
+      - "Semantic error: ..."         (type/symbol checks, user-fixable)
+      - "Internal compiler error: ..." (tool limitation, not the user's fault)
+    A legacy fallback handles the uncaught-exception "what():" format in case
+    an older compiler binary is used.
+    """
+    stderr = stderr.strip()
+    if not stderr:
+        return "Unknown system-level error (compiler produced no message)"
+
+    for prefix in ("Semantic error:", "Syntax error:"):
+        idx = stderr.find(prefix)
+        if idx != -1:
+            return stderr[idx + len(prefix):].strip()
+
+    prefix = "Internal compiler error:"
+    idx = stderr.find(prefix)
+    if idx != -1:
+        msg = stderr[idx + len(prefix):].strip()
+        return (
+            "Internal compiler error (likely a tool limitation, "
+            f"try a different algorithm): {msg}"
+        )
+
+    # Legacy fallback: uncaught C++ exception printed by std::terminate.
+    marker = "what():"
+    idx = stderr.find(marker)
+    if idx != -1:
+        return stderr[idx + len(marker):].strip()
+
+    return f"Unknown compiler error: {stderr}"
+
+
 class Evaluator(object):
     """Evaluates LegoNE code by compiling and calculating approximation bound.
     
@@ -105,25 +142,11 @@ class Evaluator(object):
 
             # Check for errors in the compiler output
             if compiler_process.stderr or compiler_process.returncode != 0:
-                stderr = compiler_process.stderr
-                if not stderr:
-                    self.logger(
-                        "\033[1;91mFailed. Evaluator encounters a unknown system-level error\033[0m"
-                    )
-                    return "Unknown system-level error"
-                if "std::runtime_error" in stderr:
-                    err_str = stderr[
-                        stderr.index("runtime_error: ") + len("runtime_error: ") :
-                    ]
-                    self.logger(
-                        f"\033[1;91mFailed. Evaluator encounters a compile error: {err_str}\033[0m"
-                    )
-                    return err_str
-                else:
-                    self.logger(
-                        f"\033[1;91mFailed. Evaluator encounters an inherent error in the compiler: {stderr}\033[0m"
-                    )
-                    return f"Unknown inherent error in the compiler: {stderr}"
+                err_str = parse_compiler_error(compiler_process.stderr)
+                self.logger(
+                    f"\033[1;91mFailed. Evaluator encounters a compile error: {err_str}\033[0m"
+                )
+                return err_str
 
             # If no errors, record the output and return None
             with open(self.temp_wolfram_name, "r") as f:

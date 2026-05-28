@@ -409,5 +409,5 @@ player_types:
 
 void yy::parser::error(const location_type& l, const std::string& m)
 {
-  std::cerr << l << ": " << m << '\n';
+  std::cerr << "Syntax error: " << l << ": " << m << '\n';
 }

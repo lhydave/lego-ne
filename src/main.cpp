@@ -47,28 +47,44 @@ int main(int argc, char *argv[])
     auto success = drv.parse2ast(filename);
     if (success != 0)
     {
-        std::cerr << "Error parsing file " << filename << std::endl;
+        // The parser already reported the diagnostic with a "Syntax error:" prefix.
         return 1;
     }
     auto print = drv.print_ast;
     auto sym_tab = legone::SymTab();
-    drv.legone_ast.walk(sym_tab, print);
-    if (drv.print_ast)
+    try
     {
-        std::cout << std::endl << "building constraint tree..." << std::endl;
+        drv.legone_ast.walk(sym_tab, print);
     }
-    drv.gen_constraint_ast();
-    if (drv.print_ast)
+    catch (const std::exception &e)
     {
-        std::cout << "Done" << std::endl;
-        std::cout << std::endl << "printing constraints without alias..." << std::endl;
-        drv.optimization_ast.print_constraints(std::cout, false);
-        std::cout << "Done" << std::endl;
-        std::cout << std::endl << "printing constraints with alias..." << std::endl;
-        drv.optimization_ast.print_constraints(std::cout, true);
-        std::cout << "Done" << std::endl;
+        std::cerr << "Semantic error: " << e.what() << std::endl;
+        return 1;
     }
-    drv.gen_mathematica_code();
+    try
+    {
+        if (drv.print_ast)
+        {
+            std::cout << std::endl << "building constraint tree..." << std::endl;
+        }
+        drv.gen_constraint_ast();
+        if (drv.print_ast)
+        {
+            std::cout << "Done" << std::endl;
+            std::cout << std::endl << "printing constraints without alias..." << std::endl;
+            drv.optimization_ast.print_constraints(std::cout, false);
+            std::cout << "Done" << std::endl;
+            std::cout << std::endl << "printing constraints with alias..." << std::endl;
+            drv.optimization_ast.print_constraints(std::cout, true);
+            std::cout << "Done" << std::endl;
+        }
+        drv.gen_mathematica_code();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Internal compiler error: " << e.what() << std::endl;
+        return 1;
+    }
     if (drv.print_mathematica_code)
     {
         std::cout << std::endl << "printing mathematica code..." << std::endl;
